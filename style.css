@@ -342,24 +342,21 @@ h1 {
 }
 
 .ctrl-btn svg {
-    width: 45px;
-    height: 45px;
-    color: var(--accent-color);
-    fill: currentColor;
-    filter: drop-shadow(0 0 12px var(--accent-glow));
-    transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    z-index: 2;
+    width: 50px;
+    height: 50px;
     display: block;
-}
-
-.ctrl-btn::before {
-    z-index: 0;
+    pointer-events: none;
+    z-index: 5;
+    filter: drop-shadow(0 0 10px var(--accent-glow));
+    transition: transform 0.2s;
 }
 
 .ctrl-btn:active svg {
-    transform: scale(1.1);
-    color: #000;
-    filter: none;
+    transform: scale(0.9);
+}
+
+.ctrl-btn::before {
+    z-index: 1;
 }
 
 .ctrl-btn.up,
