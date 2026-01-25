@@ -88,7 +88,7 @@
         <div class="canvas-container">
             <canvas id="gameCanvas" width="600" height="600"></canvas>
             <div id="startScreen" class="overlay">
-                <div class="version-overlay">v2.6.0 PREMIUM</div>
+                <div class="version-overlay">v2.8.3</div>
                 <h1>NEON SNAKE</h1>
                 <p>Press Space to Start</p>
                 <button id="startBtn">PLAY</button>
@@ -103,37 +103,29 @@
                 </div>
             </div>
 
-            <!-- DPAD Split Buttons - Sci-Fi Style -->
+            <!-- DPAD Split Buttons -->
             <div id="splitZone" class="mobile-zone hidden">
                 <div class="dpad">
                     <button class="ctrl-btn" data-dir="left">
-                        <div class="btn-ring"></div>
-                        <div class="btn-glass"></div>
                         <svg class="btn-arrow" viewBox="0 0 24 24">
-                            <path d="M15 18l-6-6 6-6" />
+                            <polygon points="15,5 15,19 6,12" fill="#00ffcc" />
                         </svg>
                     </button>
                     <div class="dpad-vertical">
                         <button class="ctrl-btn" data-dir="up">
-                            <div class="btn-ring"></div>
-                            <div class="btn-glass"></div>
                             <svg class="btn-arrow" viewBox="0 0 24 24">
-                                <path d="M18 15l-6-6-6 6" />
+                                <polygon points="5,17 19,17 12,6" fill="#00ffcc" />
                             </svg>
                         </button>
                         <button class="ctrl-btn" data-dir="down">
-                            <div class="btn-ring"></div>
-                            <div class="btn-glass"></div>
                             <svg class="btn-arrow" viewBox="0 0 24 24">
-                                <path d="M6 9l6 6 6-6" />
+                                <polygon points="5,7 19,7 12,18" fill="#00ffcc" />
                             </svg>
                         </button>
                     </div>
                     <button class="ctrl-btn" data-dir="right">
-                        <div class="btn-ring"></div>
-                        <div class="btn-glass"></div>
                         <svg class="btn-arrow" viewBox="0 0 24 24">
-                            <path d="M9 18l6-6-6-6" />
+                            <polygon points="9,5 9,19 18,12" fill="#00ffcc" />
                         </svg>
                     </button>
                 </div>
