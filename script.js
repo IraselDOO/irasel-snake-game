@@ -71,7 +71,8 @@ let isDarknessActive = false;
 let darknessTimer = 0;
 let goldenFoodTimer = 0; // Lifespan of golden apple
 let currentGoldenChance = 0.05; // Base 5%
-let controlScheme = 'keyboard';
+const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+let controlScheme = isTouchDevice ? 'swipe' : 'keyboard';
 
 class AudioSystem {
     constructor() {
@@ -592,19 +593,33 @@ function gameOver() {
 
 function initMobileControls() {
     const schemeSelect = document.getElementById('controlScheme');
+    const schemeSelectMobile = document.getElementById('controlSchemeMobile');
     const joystickZone = document.getElementById('joystickZone');
     const splitZone = document.getElementById('splitZone');
     const joystickBase = document.getElementById('joystickBase');
     const joystickStick = document.getElementById('joystickStick');
 
-    schemeSelect.addEventListener('change', (e) => {
-        controlScheme = e.target.value;
+    // Sync UI with initial state
+    if (schemeSelect) schemeSelect.value = controlScheme;
+    if (schemeSelectMobile) schemeSelectMobile.value = controlScheme;
+    updateControlVisibility();
+
+    function updateControlVisibility() {
         joystickZone.classList.add('hidden');
         splitZone.classList.add('hidden');
-
         if (controlScheme === 'joystick') joystickZone.classList.remove('hidden');
         if (controlScheme === 'split') splitZone.classList.remove('hidden');
-    });
+    }
+
+    const onSchemeChange = (e) => {
+        controlScheme = e.target.value;
+        if (schemeSelect) schemeSelect.value = controlScheme;
+        if (schemeSelectMobile) schemeSelectMobile.value = controlScheme;
+        updateControlVisibility();
+    };
+
+    if (schemeSelect) schemeSelect.addEventListener('change', onSchemeChange);
+    if (schemeSelectMobile) schemeSelectMobile.addEventListener('change', onSchemeChange);
 
     // GLOBAL SWIPE (Works everywhere for maximum reach)
     let touchStart = null;

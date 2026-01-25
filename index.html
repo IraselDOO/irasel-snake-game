@@ -76,8 +76,15 @@
         <div class="main-container">
             <!-- Mobile Compact Stats Bar -->
             <div class="mobile-stats-bar">
-                <div class="m-stat"><span>SCORE:</span> <span id="m-score">0</span></div>
-                <div class="m-stat"><span>BEST:</span> <span id="m-best">0</span></div>
+                <div class="m-stat"><span>S:</span> <span id="m-score">0</span></div>
+                <div class="m-stat"><span>B:</span> <span id="m-best">0</span></div>
+
+                <select id="controlSchemeMobile" class="m-select">
+                    <option value="swipe">Swipe</option>
+                    <option value="joystick">Joystick</option>
+                    <option value="split">Buttons</option>
+                </select>
+
                 <button id="resetBestBtnMobile" class="m-reset">↺</button>
             </div>
 
