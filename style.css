@@ -286,42 +286,118 @@ h1 {
     gap: 30px;
 }
 
+/* SCI-FI BUTTON DESIGN - PREMIUM */
 .ctrl-btn {
-    width: 82px;
-    height: 82px;
-    background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.15), transparent),
-        linear-gradient(135deg, rgba(0, 255, 204, 0.1), rgba(0, 0, 0, 0.4));
-    border: 2px solid rgba(0, 255, 204, 0.3);
-    color: var(--accent-color);
-    border-radius: 22px;
-    font-size: 34px;
-    display: flex;
-    align-items: center;
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
+    border: none;
+    background: transparent;
+    position: relative;
     display: flex;
     align-items: center;
     justify-content: center;
-    backdrop-filter: blur(15px);
+    cursor: pointer;
     -webkit-tap-highlight-color: transparent;
-    transition: all 0.1s ease-out;
-    border: 1px solid rgba(0, 255, 204, 0.5);
-    background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.05), transparent),
-        rgba(15, 15, 25, 0.95);
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6),
-        inset 0 0 12px rgba(0, 255, 204, 0.1);
-    font-size: 38px;
-    font-weight: bold;
-    color: var(--accent-color);
-    text-shadow: 0 0 10px var(--accent-glow);
-    padding-bottom: 5px;
-    /* Critical visual offset for Unicode alignment */
-    line-height: 0;
+    transition: transform 0.15s ease;
 }
 
+/* Outer glowing ring */
+.btn-ring {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    border: 3px solid #00ffcc;
+    box-shadow: 0 0 20px #00ffcc,
+        0 0 40px rgba(0, 255, 204, 0.4),
+        inset 0 0 20px rgba(0, 255, 204, 0.15);
+    animation: ringPulse 2.5s ease-in-out infinite;
+}
+
+@keyframes ringPulse {
+
+    0%,
+    100% {
+        opacity: 0.85;
+        box-shadow: 0 0 20px #00ffcc, 0 0 40px rgba(0, 255, 204, 0.4), inset 0 0 20px rgba(0, 255, 204, 0.15);
+    }
+
+    50% {
+        opacity: 1;
+        box-shadow: 0 0 30px #00ffcc, 0 0 60px rgba(0, 255, 204, 0.6), inset 0 0 30px rgba(0, 255, 204, 0.25);
+    }
+}
+
+/* Inner glass sphere with highlight */
+.btn-glass {
+    position: absolute;
+    inset: 8px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 30% 25%, rgba(80, 120, 140, 0.5), rgba(15, 25, 35, 0.98) 60%);
+    box-shadow: inset 0 -8px 20px rgba(0, 0, 0, 0.6),
+        inset 0 8px 15px rgba(255, 255, 255, 0.08),
+        inset 0 0 30px rgba(0, 255, 204, 0.05);
+    z-index: 1;
+}
+
+/* Glass highlight (top reflection) */
+.btn-glass::before {
+    content: '';
+    position: absolute;
+    top: 8%;
+    left: 20%;
+    width: 40%;
+    height: 25%;
+    background: radial-gradient(ellipse, rgba(255, 255, 255, 0.2), transparent 70%);
+    border-radius: 50%;
+}
+
+/* Arrow icon */
+.btn-arrow {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 36px;
+    height: 36px;
+    fill: none;
+    stroke: #00ffcc;
+    stroke-width: 3;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    filter: drop-shadow(0 0 12px #00ffcc) drop-shadow(0 0 4px #00ffcc);
+    z-index: 10;
+    transition: all 0.15s ease;
+    pointer-events: none;
+}
+
+.btn-arrow path {
+    stroke: #00ffcc;
+}
+
+/* Active state */
 .ctrl-btn:active {
-    background: var(--accent-color);
-    color: #000;
-    transform: scale(0.9) translateY(4px);
-    box-shadow: 0 0 30px var(--accent-color);
+    transform: scale(0.92);
+}
+
+.ctrl-btn:active .btn-ring {
+    border-color: #fff;
+    box-shadow: 0 0 40px #00ffcc,
+        0 0 80px #00ffcc,
+        inset 0 0 30px rgba(0, 255, 204, 0.4);
+}
+
+.ctrl-btn:active .btn-glass {
+    background: radial-gradient(circle at 30% 25%, rgba(0, 255, 204, 0.4), rgba(0, 100, 80, 0.95) 60%);
+}
+
+.ctrl-btn:active .btn-arrow {
+    stroke: #fff;
+    filter: drop-shadow(0 0 20px #fff) drop-shadow(0 0 8px #fff);
+}
+
+.ctrl-btn:active .btn-arrow path {
+    stroke: #fff;
 }
 
 .version-overlay {
@@ -333,11 +409,6 @@ h1 {
     opacity: 0.6;
     letter-spacing: 1.5px;
     font-family: monospace;
-}
-
-.ctrl-btn.up,
-.ctrl-btn.down {
-    width: 95px;
 }
 
 /* RESPONSIVE OVERHAUL */
