@@ -548,17 +548,28 @@ function renderFloatingTexts(dt) {
 }
 
 function updateStatsUI(s) {
-    document.getElementById('score').innerText = s;
-    document.getElementById('m-score').innerText = s;
+    const scoreVal = document.getElementById('score');
+    const mScoreVal = document.getElementById('m-score');
+    const bestVal = document.getElementById('bestScore');
+    const mBestVal = document.getElementById('m-best');
+
+    if (scoreVal) scoreVal.innerText = s;
+    if (mScoreVal) mScoreVal.innerText = s;
+
     const best = parseInt(localStorage.getItem('snakeHighScore') || 0);
-    document.getElementById('bestScore').innerText = best;
-    document.getElementById('m-best').innerText = best;
+    if (bestVal) bestVal.innerText = best;
+    if (mBestVal) mBestVal.innerText = best;
 
     const ratio = best > 0 ? Math.min(100, Math.floor((s / best) * 100)) : 0;
-    progressFill.style.width = ratio + '%';
-    ratioText.innerText = ratio + '% of Best';
+    if (progressFill) progressFill.style.width = ratio + '%';
+    if (ratioText) ratioText.innerText = ratio + '% of Best';
 
-    efficiencyVal.innerText = foodsEaten > 0 ? ((Date.now() - startTime) / (foodsEaten * 1000)).toFixed(1) + 's' : '0s';
+    if (efficiencyEl) {
+        efficiencyEl.innerText = foodsEaten > 0 ? ((Date.now() - startTime) / (foodsEaten * 1000)).toFixed(1) + 's' : '0s';
+    }
+    if (sessionTimeEl && startTime > 0) {
+        sessionTimeEl.innerText = Math.floor((Date.now() - startTime) / 1000) + 's';
+    }
 }
 
 function gameOver() {
