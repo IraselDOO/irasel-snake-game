@@ -87,6 +87,7 @@ class AudioSystem {
         this.osc(baseFreq, 'triangle', 0.15, baseFreq * 2);
     }
     playGameOver() { this.osc(220, 'sawtooth', 0.5, 50); }
+    playClick() { this.osc(1200, 'sine', 0.04, 800); } // Short futuristic click
     osc(freq, type, duration, endFreq) {
         if (this.ctx.state === 'suspended') this.ctx.resume();
         const osc = this.ctx.createOscillator();
@@ -631,10 +632,15 @@ function initMobileControls() {
         if (!touchStart || controlScheme !== 'swipe') return;
         const dx = e.changedTouches[0].clientX - touchStart.x;
         const dy = e.changedTouches[0].clientY - touchStart.y;
+        let triggered = false;
         if (Math.abs(dx) > Math.abs(dy)) {
-            if (Math.abs(dx) > 25) handleInput(dx > 0 ? 'Right' : 'Left');
+            if (Math.abs(dx) > 25) { handleInput(dx > 0 ? 'Right' : 'Left'); triggered = true; }
         } else {
-            if (Math.abs(dy) > 25) handleInput(dy > 0 ? 'Down' : 'Up');
+            if (Math.abs(dy) > 25) { handleInput(dy > 0 ? 'Down' : 'Up'); triggered = true; }
+        }
+        if (triggered) {
+            audio.playClick();
+            if (navigator.vibrate) navigator.vibrate(10);
         }
     }, { passive: true });
 
@@ -681,8 +687,22 @@ function initMobileControls() {
 
         // More sensitive threshold for direction changes
         if (dist > 15) {
-            if (Math.abs(dx) > Math.abs(dy)) handleInput(dx > 0 ? 'Right' : 'Left');
-            else handleInput(dy > 0 ? 'Down' : 'Up');
+            let nextDir = "";
+            if (Math.abs(dx) > Math.abs(dy)) nextDir = dx > 0 ? 'Right' : 'Left';
+            else nextDir = dy > 0 ? 'Down' : 'Up';
+
+            const last = inputQueue.length > 0 ? inputQueue[inputQueue.length - 1] : direction;
+            const isOpposite = (nextDir === 'Up' && last.y === 1) || (nextDir === 'Down' && last.y === -1) || (nextDir === 'Left' && last.x === 1) || (nextDir === 'Right' && last.x === -1);
+
+            if (!isOpposite) {
+                const currentLastDir = last.x + "," + last.y;
+                handleInput(nextDir);
+                const newLast = inputQueue[inputQueue.length - 1];
+                if (newLast && (newLast.x + "," + newLast.y) !== currentLastDir) {
+                    audio.playClick();
+                    if (navigator.vibrate) navigator.vibrate(10);
+                }
+            }
         }
     }
 
@@ -690,6 +710,8 @@ function initMobileControls() {
     document.querySelectorAll('.ctrl-btn').forEach(btn => {
         btn.addEventListener('touchstart', e => {
             handleInput(btn.dataset.dir.charAt(0).toUpperCase() + btn.dataset.dir.slice(1));
+            audio.playClick();
+            if (navigator.vibrate) navigator.vibrate(10);
             e.preventDefault();
         }, { passive: false });
     });

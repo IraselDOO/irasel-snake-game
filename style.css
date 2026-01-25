@@ -273,25 +273,55 @@ h1 {
 }
 
 .ctrl-btn {
-    width: 75px;
-    height: 75px;
-    background: rgba(0, 255, 204, 0.05);
-    border: 2px solid var(--accent-color);
+    width: 78px;
+    height: 78px;
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.1), rgba(0, 0, 0, 0.2));
+    border: 1px solid rgba(0, 255, 204, 0.4);
     color: var(--accent-color);
-    border-radius: 18px;
-    font-size: 28px;
+    border-radius: 20px;
+    font-size: 32px;
     display: flex;
     align-items: center;
     justify-content: center;
-    backdrop-filter: blur(8px);
+    backdrop-filter: blur(12px);
     -webkit-tap-highlight-color: transparent;
-    transition: background 0.1s;
+    transition: all 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    box-shadow:
+        0 8px 15px rgba(0, 0, 0, 0.3),
+        inset 0 0 10px rgba(0, 255, 204, 0.1);
+    position: relative;
+    overflow: hidden;
+}
+
+.ctrl-btn::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(circle at center, rgba(0, 255, 204, 0.2), transparent 70%);
+    opacity: 0;
+    transition: opacity 0.2s;
 }
 
 .ctrl-btn:active {
     background: var(--accent-color);
     color: #000;
+    transform: scale(0.92) translateY(2px);
+    box-shadow: 0 0 30px var(--accent-glow);
 }
+
+.ctrl-btn:active::after {
+    opacity: 1;
+}
+
+.ctrl-btn.up,
+.ctrl-btn.down {
+    width: 85px;
+}
+
+/* Slightly wider vertical keys */
 
 /* RESPONSIVE OVERHAUL */
 @media (max-width: 950px) {
