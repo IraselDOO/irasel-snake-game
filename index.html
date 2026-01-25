@@ -40,7 +40,8 @@
     </svg>
     <canvas id="ambientCanvas"></canvas>
     <div class="game-wrapper">
-        <div class="stats-panel">
+        <!-- Desktop Stats (Hidden on Mobile via CSS) -->
+        <div class="stats-panel desktop-stats">
             <div class="stat-box">
                 <span class="label">Best Score</span>
                 <span id="bestScore" class="value">0</span>
@@ -50,59 +51,64 @@
                 <span class="label">Current</span>
                 <span id="score" class="value">0</span>
             </div>
-
             <div class="stat-bar-container">
                 <div class="label">Performance</div>
                 <div class="progress-bar">
-                    <div id="progressFill" class="fill" style="width: 0%"></div>
+                    <div id="progressFill" class="fill"></div>
                 </div>
                 <div id="ratioText" class="sub-text">0% of Best</div>
             </div>
-
-            <!-- Mobile Controls Settings -->
             <div class="controls-settings">
                 <div class="label">Controls</div>
                 <select id="controlScheme">
                     <option value="keyboard">Keyboard</option>
                     <option value="swipe">Swipe</option>
                     <option value="joystick">Joystick</option>
-                    <option value="split">Split Buttons</option>
+                    <option value="split">Buttons</option>
                 </select>
             </div>
-
-            <div class="stat-box small">
-                <span class="label">Avg Spd</span>
-                <span id="efficiency" class="value">0s</span>
+            <div class="stat-box small"><span class="label">Avg Spd</span><span id="efficiency" class="value">0s</span>
             </div>
-            <div class="stat-box small">
-                <span class="label">Duration</span>
-                <span id="sessionTime" class="value">0s</span>
-            </div>
+            <div class="stat-box small"><span class="label">Duration</span><span id="sessionTime"
+                    class="value">0s</span></div>
         </div>
 
-        <div class="canvas-container">
-            <canvas id="gameCanvas" width="600" height="600"></canvas>
-            <div id="startScreen" class="overlay">
-                <h1>NEON SNAKE</h1>
-                <p>Press Space to Start</p>
-                <button id="startBtn">PLAY</button>
+        <div class="main-container">
+            <!-- Mobile Compact Stats Bar -->
+            <div class="mobile-stats-bar">
+                <div class="m-stat"><span>SCORE:</span> <span id="m-score">0</span></div>
+                <div class="m-stat"><span>BEST:</span> <span id="m-best">0</span></div>
+                <button id="resetBestBtnMobile" class="m-reset">↺</button>
             </div>
 
-            <!-- Mobile Control Overlays -->
-            <div id="joystickZone" class="mobile-zone hidden">
-                <div id="joystickBase">
-                    <div id="joystickStick"></div>
+            <div class="canvas-container">
+                <canvas id="gameCanvas" width="600" height="600"></canvas>
+                <div id="startScreen" class="overlay">
+                    <h1>NEON SNAKE</h1>
+                    <p>Press Space to Start</p>
+                    <button id="startBtn">PLAY</button>
                 </div>
             </div>
 
-            <div id="splitZone" class="mobile-zone hidden">
-                <div class="split-side left">
-                    <button class="ctrl-btn" data-dir="left">←</button>
-                    <button class="ctrl-btn" data-dir="right">→</button>
+            <!-- Mobile Controls Zone (Below Field) -->
+            <div id="mobileControls" class="mobile-controls-container">
+                <!-- Joystick Displayed Here if selected -->
+                <div id="joystickZone" class="mobile-zone hidden">
+                    <div id="joystickBase">
+                        <div id="joystickStick"></div>
+                    </div>
                 </div>
-                <div class="split-side right">
-                    <button class="ctrl-btn" data-dir="up">↑</button>
-                    <button class="ctrl-btn" data-dir="down">↓</button>
+
+                <!-- DPAD Split Buttons -->
+                <div id="splitZone" class="mobile-zone hidden">
+                    <div class="dpad">
+                        <button class="ctrl-btn left" data-dir="left">←</button>
+                        <div class="dpad-vertical">
+                            <button class="ctrl-btn up" data-dir="up">↑</button>
+                            <button class="ctrl-btn down" data-dir="down">↓</button>
+                        </div>
+                        <button class="ctrl-btn right" data-dir="right">→</button>
+                    </div>
                 </div>
             </div>
         </div>

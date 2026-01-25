@@ -183,7 +183,7 @@ h1 {
 /* Mobile Controls & Settings */
 .controls-settings {
     background: rgba(0, 0, 0, 0.3);
-    padding: 15px;
+    padding: 12px;
     border-radius: 8px;
     border: 1px solid var(--glass-border);
 }
@@ -201,86 +201,91 @@ h1 {
     cursor: pointer;
 }
 
+/* Containers */
+.main-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+.mobile-stats-bar {
+    display: none;
+    /* Desktop hidden */
+}
+
 /* Mobile Zones */
+.mobile-controls-container {
+    display: none;
+    /* Desktop hidden */
+    width: 100%;
+    height: 180px;
+    position: relative;
+}
+
 .mobile-zone {
-    position: absolute;
-    top: 0;
-    left: 0;
     width: 100%;
     height: 100%;
-    pointer-events: none;
-    z-index: 5;
-    transition: opacity 0.3s;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 .mobile-zone.hidden {
-    opacity: 0;
     display: none;
 }
 
 /* Joystick Styles */
-#joystickZone {
-    display: flex;
-    justify-content: center;
-    align-items: flex-end;
-    padding-bottom: 50px;
-}
-
 #joystickBase {
-    width: 120px;
-    height: 120px;
-    background: rgba(255, 255, 255, 0.1);
-    border: 2px solid var(--accent-color);
+    width: 130px;
+    height: 130px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 3px solid var(--accent-color);
     border-radius: 50%;
     position: relative;
-    pointer-events: auto;
-    backdrop-filter: blur(5px);
+    backdrop-filter: blur(10px);
 }
 
 #joystickStick {
-    width: 50px;
-    height: 50px;
+    width: 55px;
+    height: 55px;
     background: var(--accent-color);
     border-radius: 50%;
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    box-shadow: 0 0 20px var(--accent-glow);
+    box-shadow: 0 0 25px var(--accent-glow);
 }
 
-/* Split Buttons Styles */
-#splitZone {
+/* DPAD Styles */
+.dpad {
     display: flex;
-    justify-content: space-between;
-    align-items: flex-end;
-    padding: 0 20px 40px 20px;
-    box-sizing: border-box;
-    pointer-events: none;
+    align-items: center;
+    gap: 30px;
+    user-select: none;
 }
 
-.split-side {
+.dpad-vertical {
     display: flex;
-    gap: 15px;
-    pointer-events: auto;
+    flex-direction: column;
+    gap: 30px;
 }
 
 .ctrl-btn {
-    width: 70px;
-    height: 70px;
-    background: rgba(0, 255, 204, 0.1);
+    width: 75px;
+    height: 75px;
+    background: rgba(0, 255, 204, 0.05);
     border: 2px solid var(--accent-color);
     color: var(--accent-color);
-    border-radius: 12px;
-    font-size: 24px;
+    border-radius: 18px;
+    font-size: 28px;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin: 0;
-    padding: 0;
-    backdrop-filter: blur(5px);
-    user-select: none;
+    backdrop-filter: blur(8px);
     -webkit-tap-highlight-color: transparent;
+    transition: background 0.1s;
 }
 
 .ctrl-btn:active {
@@ -288,60 +293,72 @@ h1 {
     color: #000;
 }
 
-/* RESPONSIVE LAYOUT */
+/* RESPONSIVE OVERHAUL */
 @media (max-width: 950px) {
     .game-wrapper {
-        flex-direction: column-reverse;
-        align-items: center;
-        gap: 20px;
-        padding: 20px;
-    }
-
-    .stats-panel {
-        width: 100%;
-        max-width: 600px;
-        flex-direction: row;
-        flex-wrap: wrap;
-        padding: 15px;
-        justify-content: space-around;
+        flex-direction: column;
+        justify-content: flex-start;
+        height: 100%;
+        padding: 5px;
         gap: 10px;
     }
 
-    .stat-box,
-    .controls-settings,
-    .stat-bar-container {
-        flex: 1 1 140px;
-        min-width: 120px;
+    .desktop-stats {
+        display: none !important;
+    }
+
+    .mobile-stats-bar {
+        display: flex;
+        width: 100%;
+        justify-content: center;
+        gap: 20px;
+        padding: 10px;
+        background: var(--panel-bg);
+        border-bottom: 1px solid var(--glass-border);
+        align-items: center;
+    }
+
+    .m-stat {
+        font-size: 14px;
+        color: var(--text-dim);
+    }
+
+    .m-stat span:last-child {
+        color: var(--accent-color);
+        font-weight: bold;
+        margin-left: 5px;
+    }
+
+    .m-reset {
+        background: transparent;
+        border: 1px solid #ff4444;
+        color: #ff4444;
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        padding: 0;
+        margin: 0;
+        font-size: 16px;
     }
 
     .canvas-container {
-        width: 100%;
-        max-width: 600px;
-        aspect-ratio: 1/1;
+        width: 95vw;
+        height: 95vw;
+        max-width: 500px;
+        max-height: 500px;
     }
 
     canvas#gameCanvas {
         width: 100% !important;
-        height: auto !important;
+        height: 100% !important;
+    }
+
+    .mobile-controls-container {
+        display: block;
     }
 
     h1 {
-        font-size: 32px;
-    }
-}
-
-@media (max-width: 500px) {
-    .stats-panel {
-        padding: 10px;
-    }
-
-    .value {
-        font-size: 24px;
-    }
-
-    .ctrl-btn {
-        width: 60px;
-        height: 60px;
+        font-size: 28px;
     }
 }
 

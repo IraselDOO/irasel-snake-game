@@ -548,13 +548,17 @@ function renderFloatingTexts(dt) {
 }
 
 function updateStatsUI(s) {
-    scoreEl.textContent = s; bestScoreEl.textContent = highScore;
-    const r = highScore > 0 ? Math.min(100, Math.round((s / highScore) * 100)) : 0;
-    progressFill.style.width = r + '%'; ratioText.textContent = `${r}% of Best`;
-    if (foodsEaten > 0) {
-        const el = (Date.now() - startTime) / 1000; efficiencyEl.textContent = (el / foodsEaten).toFixed(1) + 's/f';
-        sessionTimeEl.textContent = Math.floor(el) + 's';
-    }
+    document.getElementById('score').innerText = s;
+    document.getElementById('m-score').innerText = s;
+    const best = parseInt(localStorage.getItem('snakeHighScore') || 0);
+    document.getElementById('bestScore').innerText = best;
+    document.getElementById('m-best').innerText = best;
+
+    const ratio = best > 0 ? Math.min(100, Math.floor((s / best) * 100)) : 0;
+    progressFill.style.width = ratio + '%';
+    ratioText.innerText = ratio + '% of Best';
+
+    efficiencyVal.innerText = foodsEaten > 0 ? ((Date.now() - startTime) / (foodsEaten * 1000)).toFixed(1) + 's' : '0s';
 }
 
 function gameOver() {
@@ -591,21 +595,24 @@ function initMobileControls() {
         if (controlScheme === 'split') splitZone.classList.remove('hidden');
     });
 
-    // SWIPE LOGIC
+    // GLOBAL SWIPE (Works everywhere for maximum reach)
     let touchStart = null;
-    canvas.addEventListener('touchstart', e => { touchStart = { x: e.touches[0].clientX, y: e.touches[0].clientY }; e.preventDefault(); }, { passive: false });
-    canvas.addEventListener('touchend', e => {
+    document.addEventListener('touchstart', e => {
+        touchStart = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+    }, { passive: true });
+
+    document.addEventListener('touchend', e => {
         if (!touchStart || controlScheme !== 'swipe') return;
         const dx = e.changedTouches[0].clientX - touchStart.x;
         const dy = e.changedTouches[0].clientY - touchStart.y;
         if (Math.abs(dx) > Math.abs(dy)) {
-            if (Math.abs(dx) > 30) handleInput(dx > 0 ? 'Right' : 'Left');
+            if (Math.abs(dx) > 25) handleInput(dx > 0 ? 'Right' : 'Left');
         } else {
-            if (Math.abs(dy) > 30) handleInput(dy > 0 ? 'Down' : 'Up');
+            if (Math.abs(dy) > 25) handleInput(dy > 0 ? 'Down' : 'Up');
         }
-    }, { passive: false });
+    }, { passive: true });
 
-    // JOYSTICK LOGIC
+    // JOYSTICK (Improved Precision)
     let joyTouchId = null;
     joystickBase.addEventListener('touchstart', e => {
         joyTouchId = e.changedTouches[0].identifier;
@@ -624,13 +631,14 @@ function initMobileControls() {
     }, { passive: false });
 
     window.addEventListener('touchend', e => {
+        if (joyTouchId === null) return;
         for (let t of e.changedTouches) {
             if (t.identifier === joyTouchId) {
                 joyTouchId = null;
                 joystickStick.style.transform = `translate(-50%, -50%)`;
             }
         }
-    }, { passive: false });
+    });
 
     function updateJoystick(touch) {
         const rect = joystickBase.getBoundingClientRect();
@@ -638,27 +646,33 @@ function initMobileControls() {
         const dx = touch.clientX - center.x;
         const dy = touch.clientY - center.y;
         const dist = Math.sqrt(dx * dx + dy * dy);
-        const maxDist = rect.width / 2;
-        const limitedDist = Math.min(dist, maxDist);
+        const maxDist = rect.width / 2 - 10;
         const angle = Math.atan2(dy, dx);
 
-        const sx = Math.cos(angle) * limitedDist;
-        const sy = Math.sin(angle) * limitedDist;
+        const sx = Math.cos(angle) * Math.min(dist, maxDist);
+        const sy = Math.sin(angle) * Math.min(dist, maxDist);
         joystickStick.style.transform = `translate(calc(-50% + ${sx}px), calc(-50% + ${sy}px))`;
 
-        if (dist > 20) {
+        // More sensitive threshold for direction changes
+        if (dist > 15) {
             if (Math.abs(dx) > Math.abs(dy)) handleInput(dx > 0 ? 'Right' : 'Left');
             else handleInput(dy > 0 ? 'Down' : 'Up');
         }
     }
 
-    // SPLIT BUTTONS
+    // DPAD Buttons (Two-handed ergonomy)
     document.querySelectorAll('.ctrl-btn').forEach(btn => {
         btn.addEventListener('touchstart', e => {
-            const dir = btn.dataset.dir;
-            handleInput(dir.charAt(0).toUpperCase() + dir.slice(1));
+            handleInput(btn.dataset.dir.charAt(0).toUpperCase() + btn.dataset.dir.slice(1));
             e.preventDefault();
         }, { passive: false });
+    });
+
+    // Mobile Reset Sync
+    document.getElementById('resetBestBtnMobile').addEventListener('click', () => {
+        if (confirm("Reset best score?")) {
+            highScore = 0; localStorage.setItem('snakeHighScore', 0); updateStatsUI(score);
+        }
     });
 }
 
