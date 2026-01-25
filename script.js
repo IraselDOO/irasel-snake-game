@@ -19,12 +19,17 @@ boardCanvas.width = canvas.width;
 boardCanvas.height = canvas.height;
 
 // Stats UI
-const scoreEl = document.getElementById('score');
-const bestScoreEl = document.getElementById('bestScore');
-const progressFill = document.getElementById('progressFill');
-const ratioText = document.getElementById('ratioText');
-const efficiencyEl = document.getElementById('efficiency');
-const sessionTimeEl = document.getElementById('sessionTime');
+// Stats UI Cache
+const elements = {
+    score: document.getElementById('score'),
+    mScore: document.getElementById('m-score'),
+    best: document.getElementById('bestScore'),
+    mBest: document.getElementById('m-best'),
+    progress: document.getElementById('progressFill'),
+    ratio: document.getElementById('ratioText'),
+    efficiency: document.getElementById('efficiency'),
+    duration: document.getElementById('sessionTime')
+};
 
 // Constants
 const GRID_SIZE = 24;
@@ -161,7 +166,7 @@ function startGame() {
     currentGoldenChance = 0.05;
     prevSnake = snake.map(s => ({ ...s }));
 
-    score = 0; foodsEaten = 0; startTime = Date.now(); gameSpeed = 110;
+    score = 0; foodsEaten = 0; startTime = performance.now(); gameSpeed = 110;
     snakeHue = 160; foodHue = (snakeHue + 180) % 360;
     borderFlashTimer = 0;
     initGridState();
@@ -247,7 +252,7 @@ function gameLoop() {
 }
 
 function drawAmbientDust(dt) {
-    const time = Date.now() * 0.001;
+    const time = performance.now() * 0.001;
     const speedMult = (gameState === STATE_PLAYING) ? 1 + (110 - gameSpeed) / 20 : 0.5;
     const spd = (dt / 16.67) * speedMult;
 
@@ -566,27 +571,22 @@ function renderFloatingTexts(dt) {
 }
 
 function updateStatsUI(s) {
-    const scoreVal = document.getElementById('score');
-    const mScoreVal = document.getElementById('m-score');
-    const bestVal = document.getElementById('bestScore');
-    const mBestVal = document.getElementById('m-best');
-
-    if (scoreVal) scoreVal.innerText = s;
-    if (mScoreVal) mScoreVal.innerText = s;
+    if (elements.score) elements.score.innerText = s;
+    if (elements.mScore) elements.mScore.innerText = s;
 
     const best = parseInt(localStorage.getItem('snakeHighScore') || 0);
-    if (bestVal) bestVal.innerText = best;
-    if (mBestVal) mBestVal.innerText = best;
+    if (elements.best) elements.best.innerText = best;
+    if (elements.mBest) elements.mBest.innerText = best;
 
     const ratio = best > 0 ? Math.min(100, Math.floor((s / best) * 100)) : 0;
-    if (progressFill) progressFill.style.width = ratio + '%';
-    if (ratioText) ratioText.innerText = ratio + '% of Best';
+    if (elements.progress) elements.progress.style.width = ratio + '%';
+    if (elements.ratio) elements.ratio.innerText = ratio + '% of Best';
 
-    if (efficiencyEl) {
-        efficiencyEl.innerText = foodsEaten > 0 ? ((Date.now() - startTime) / (foodsEaten * 1000)).toFixed(1) + 's' : '0s';
+    if (elements.efficiency) {
+        elements.efficiency.innerText = foodsEaten > 0 ? ((performance.now() - startTime) / (foodsEaten * 1000)).toFixed(1) + 's' : '0s';
     }
-    if (sessionTimeEl && startTime > 0) {
-        sessionTimeEl.innerText = Math.floor((Date.now() - startTime) / 1000) + 's';
+    if (elements.duration && startTime > 0) {
+        elements.duration.innerText = Math.floor((performance.now() - startTime) / 1000) + 's';
     }
 }
 
