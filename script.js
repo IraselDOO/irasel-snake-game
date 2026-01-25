@@ -200,7 +200,15 @@ function gameLoop() {
     snake.unshift(head);
 
     if (head.x === food.x && head.y === food.y) {
-        const reward = isDarknessActive ? 100 : 10;
+        // Calculate base reward with time decay: 10 - seconds since spawn, min 1.
+        const secondsElapsed = Math.floor((Date.now() - lastFoodTime) / 1000);
+        let reward = Math.max(1, 10 - secondsElapsed);
+
+        // Darkness Bonus (if active): apple points + snake length
+        if (isDarknessActive) {
+            reward += snake.length;
+        }
+
         score += reward; foodsEaten++; spawnFood(); updateStatsUI(score);
 
         if (isDarknessActive) {
@@ -223,7 +231,8 @@ function gameLoop() {
         snakeHue = (snakeHue + 5) % 360; foodHue = (snakeHue + 180) % 360;
         if (gameSpeed > 45) gameSpeed -= 1;
     } else if (goldenFood && head.x === goldenFood.x && head.y === goldenFood.y) {
-        score += 50; foodsEaten++; goldenFood = null; updateStatsUI(score);
+        const reward = 5;
+        score += reward; foodsEaten++; goldenFood = null; updateStatsUI(score);
         isDarknessActive = true;
         darknessTimer = 10000;
         shakeIntensity = 25;

@@ -327,6 +327,21 @@ h1 {
     border-color: #fff;
 }
 
+.ctrl-btn svg {
+    width: 40px;
+    height: 40px;
+    fill: var(--accent-color);
+    filter: drop-shadow(0 0 8px var(--accent-glow));
+    transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    z-index: 1;
+}
+
+.ctrl-btn:active svg {
+    transform: scale(1.2);
+    fill: #000;
+    filter: none;
+}
+
 .ctrl-btn.up,
 .ctrl-btn.down {
     width: 90px;
