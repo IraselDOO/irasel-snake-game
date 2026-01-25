@@ -293,7 +293,10 @@ function renderLoop(currentTime) {
 
     if (goldenFood) {
         goldenFoodTimer -= dt;
-        if (goldenFoodTimer <= 0) goldenFood = null;
+        if (goldenFoodTimer <= 0) {
+            goldenFood = null;
+            currentGoldenChance = 0.01; // Penalty: chance drops to 1% if missed
+        }
     }
 
     ctx.save();

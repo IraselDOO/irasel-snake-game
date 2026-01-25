@@ -341,22 +341,28 @@ h1 {
     border-color: #fff;
 }
 
-.ctrl-btn svg {
-    width: 50px;
-    height: 50px;
-    display: block;
+.btn-icon {
+    width: 44px;
+    height: 44px;
     pointer-events: none;
-    z-index: 5;
+    z-index: 10;
     filter: drop-shadow(0 0 10px var(--accent-glow));
     transition: transform 0.2s;
 }
 
-.ctrl-btn:active svg {
-    transform: scale(0.9);
+.ctrl-btn:active .btn-icon {
+    transform: scale(0.85);
 }
 
-.ctrl-btn::before {
-    z-index: 1;
+.version-tag {
+    position: fixed;
+    bottom: 5px;
+    right: 10px;
+    font-size: 10px;
+    color: var(--text-dim);
+    opacity: 0.5;
+    letter-spacing: 1px;
+    z-index: 100;
 }
 
 .ctrl-btn.up,
