@@ -272,8 +272,12 @@ function renderLoop(currentTime) {
 
     if (gameState === STATE_PLAYING) {
         logicAccumulator += dt;
-        while (logicAccumulator >= gameSpeed) { gameLoop(); logicAccumulator -= gameSpeed; }
-        moveProgress = Math.min(1, (currentTime - lastLogicTick) / gameSpeed);
+        while (logicAccumulator >= gameSpeed) {
+            gameLoop();
+            logicAccumulator -= gameSpeed;
+        }
+        // Sub-pixel interpolation factor
+        moveProgress = logicAccumulator / gameSpeed;
     }
 
     let dx = 0, dy = 0;
@@ -376,7 +380,7 @@ function drawSnake(currentTime, dt) {
 
         const isHead = (i === 0 && gameState !== STATE_DEAD);
         let sc = isHead ? 1.3 : 1;
-        if (i === targetSnake.length - 1) sc = 0.7;
+        if (i === targetSnake.length - 1) sc = 0.7 * (1 - moveProgress * 0.3); // Smooth tail shrinking
         if (s.hasFood) sc += (0.4 * (1 - i / targetSnake.length));
 
         ctx.globalAlpha = alpha;
