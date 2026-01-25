@@ -72,7 +72,7 @@ let darknessTimer = 0;
 let goldenFoodTimer = 0; // Lifespan of golden apple
 let currentGoldenChance = 0.05; // Base 5%
 const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
-let controlScheme = isTouchDevice ? 'swipe' : 'keyboard';
+let controlScheme = isTouchDevice ? 'split' : 'keyboard';
 
 class AudioSystem {
     constructor() {
