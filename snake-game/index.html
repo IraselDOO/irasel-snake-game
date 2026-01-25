@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neon Snake 3D Pro</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+
+    <!-- PWA Setup -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#00ffcc">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="icon-512.png">
+
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js');
+            });
+        }
+    </script>
+</head>
+
+<body>
+    <svg style="position: absolute; width: 0; height: 0;" aria-hidden="true" focusable="false">
+        <defs>
+            <filter id="chromatic">
+                <feColorMatrix type="matrix" values="1 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1 0" result="red" />
+                <feOffset in="red" dx="2" dy="0" result="redOffset" />
+                <feColorMatrix type="matrix" values="0 0 0 0 0  0 1 0 0 0  0 0 0 0 0  0 0 0 1 0" result="green" />
+                <feOffset in="green" dx="-2" dy="0" result="greenOffset" />
+                <feColorMatrix type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 1 0 0  0 0 0 1 0" result="blue" />
+                <feBlend mode="screen" in="redOffset" in2="greenOffset" result="rg" />
+                <feBlend mode="screen" in="rg" in2="blue" />
+            </filter>
+        </defs>
+    </svg>
+    <canvas id="ambientCanvas"></canvas>
+    <div class="game-wrapper">
+        <div class="stats-panel">
+            <div class="stat-box">
+                <span class="label">Best Score</span>
+                <span id="bestScore" class="value">0</span>
+                <button id="resetBestBtn" class="reset-btn" title="Reset Best Score">↺</button>
+            </div>
+            <div class="stat-box">
+                <span class="label">Current</span>
+                <span id="score" class="value">0</span>
+            </div>
+
+            <div class="stat-bar-container">
+                <div class="label">Performance</div>
+                <div class="progress-bar">
+                    <div id="progressFill" class="fill" style="width: 0%"></div>
+                </div>
+                <div id="ratioText" class="sub-text">0% of Best</div>
+            </div>
+
+            <!-- Mobile Controls Settings -->
+            <div class="controls-settings">
+                <div class="label">Controls</div>
+                <select id="controlScheme">
+                    <option value="keyboard">Keyboard</option>
+                    <option value="swipe">Swipe</option>
+                    <option value="joystick">Joystick</option>
+                    <option value="split">Split Buttons</option>
+                </select>
+            </div>
+
+            <div class="stat-box small">
+                <span class="label">Avg Spd</span>
+                <span id="efficiency" class="value">0s</span>
+            </div>
+            <div class="stat-box small">
+                <span class="label">Duration</span>
+                <span id="sessionTime" class="value">0s</span>
+            </div>
+        </div>
+
+        <div class="canvas-container">
+            <canvas id="gameCanvas" width="600" height="600"></canvas>
+            <div id="startScreen" class="overlay">
+                <h1>NEON SNAKE</h1>
+                <p>Press Space to Start</p>
+                <button id="startBtn">PLAY</button>
+            </div>
+
+            <!-- Mobile Control Overlays -->
+            <div id="joystickZone" class="mobile-zone hidden">
+                <div id="joystickBase">
+                    <div id="joystickStick"></div>
+                </div>
+            </div>
+
+            <div id="splitZone" class="mobile-zone hidden">
+                <div class="split-side left">
+                    <button class="ctrl-btn" data-dir="left">←</button>
+                    <button class="ctrl-btn" data-dir="right">→</button>
+                </div>
+                <div class="split-side right">
+                    <button class="ctrl-btn" data-dir="up">↑</button>
+                    <button class="ctrl-btn" data-dir="down">↓</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
