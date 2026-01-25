@@ -297,77 +297,47 @@ h1 {
     font-size: 34px;
     display: flex;
     align-items: center;
+    display: flex;
+    align-items: center;
     justify-content: center;
     backdrop-filter: blur(15px);
     -webkit-tap-highlight-color: transparent;
-    transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    box-shadow:
-        0 10px 20px rgba(0, 0, 0, 0.5),
-        inset 0 2px 2px rgba(255, 255, 255, 0.1),
-        inset 0 -2px 10px rgba(0, 0, 255, 0.1);
-    position: relative;
-    overflow: hidden;
+    transition: all 0.1s ease-out;
+    border: 1px solid rgba(0, 255, 204, 0.5);
+    background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.05), transparent),
+        rgba(15, 15, 25, 0.95);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6),
+        inset 0 0 12px rgba(0, 255, 204, 0.1);
+    font-size: 38px;
+    font-weight: bold;
+    color: var(--accent-color);
     text-shadow: 0 0 10px var(--accent-glow);
-}
-
-.ctrl-btn::before {
-    content: '';
-    position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: conic-gradient(from 0deg, transparent, rgba(0, 255, 204, 0.1), transparent 30%);
-    animation: rotate 4s linear infinite;
-    pointer-events: none;
-}
-
-@keyframes rotate {
-    from {
-        transform: rotate(0deg);
-    }
-
-    to {
-        transform: rotate(360deg);
-    }
+    padding-bottom: 5px;
+    /* Critical visual offset for Unicode alignment */
+    line-height: 0;
 }
 
 .ctrl-btn:active {
     background: var(--accent-color);
     color: #000;
     transform: scale(0.9) translateY(4px);
-    box-shadow: 0 0 40px var(--accent-color),
-        inset 0 2px 10px rgba(0, 0, 0, 0.4);
-    border-color: #fff;
+    box-shadow: 0 0 30px var(--accent-color);
 }
 
-.btn-icon {
-    width: 44px;
-    height: 44px;
-    pointer-events: none;
-    z-index: 10;
-    filter: drop-shadow(0 0 10px var(--accent-glow));
-    transition: transform 0.2s;
-}
-
-.ctrl-btn:active .btn-icon {
-    transform: scale(0.85);
-}
-
-.version-tag {
-    position: fixed;
-    bottom: 5px;
-    right: 10px;
-    font-size: 10px;
-    color: var(--text-dim);
-    opacity: 0.5;
-    letter-spacing: 1px;
-    z-index: 100;
+.version-overlay {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    font-size: 12px;
+    color: var(--accent-color);
+    opacity: 0.6;
+    letter-spacing: 1.5px;
+    font-family: monospace;
 }
 
 .ctrl-btn.up,
 .ctrl-btn.down {
-    width: 90px;
+    width: 95px;
 }
 
 /* RESPONSIVE OVERHAUL */
