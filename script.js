@@ -1,4 +1,4 @@
-const VERSION = "v2.12.3 SCORE BOOM";
+const VERSION = "v2.12.4 MOBILE FIT FIXED";
 const STATE_START = 'start';
 const STATE_PLAYING = 'playing';
 const STATE_DEAD = 'dead';

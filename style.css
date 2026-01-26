@@ -217,16 +217,20 @@ h1 {
 /* Mobile Portrait Overrides */
 @media (max-width: 950px) {
     .game-wrapper {
-        justify-content: flex-start;
-        padding: 5px;
-        gap: 10px;
-        min-height: auto;
+        justify-content: space-between;
+        padding: 0;
+        gap: 0;
+        height: 100svh;
+        min-height: 100svh;
+        overflow: hidden;
     }
 
     .main-container {
         flex-direction: column;
         align-items: center;
         width: 100%;
+        flex-grow: 1;
+        justify-content: center;
     }
 
     .desktop-stats {
@@ -236,16 +240,18 @@ h1 {
     .mobile-stats-bar {
         display: flex;
         width: 100%;
+        height: 4svh;
         justify-content: center;
-        gap: 15px;
-        padding: 10px;
+        gap: 10px;
+        padding: 0 5px;
         background: var(--panel-bg);
         border-bottom: 1px solid var(--glass-border);
         align-items: center;
+        flex-shrink: 0;
     }
 
     .m-stat {
-        font-size: 14px;
+        font-size: 13px;
         color: var(--text-dim);
     }
 
@@ -259,28 +265,30 @@ h1 {
         background: #111;
         color: var(--accent-color);
         border: 1px solid var(--accent-color);
-        padding: 4px;
+        padding: 2px 4px;
         border-radius: 4px;
-        font-size: 12px;
+        font-size: 11px;
     }
 
     .m-reset {
         background: transparent;
         border: 1px solid #ff4444;
         color: #ff4444;
-        width: 28px;
-        height: 28px;
+        width: 24px;
+        height: 24px;
         border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
+        font-size: 14px;
     }
 
     .canvas-container {
         width: var(--game-width);
         aspect-ratio: 9/16;
-        max-height: 78vh;
-        margin: 5px auto;
+        max-height: 74svh;
+        margin: auto;
+        flex-shrink: 0;
     }
 
     canvas#gameCanvas {
@@ -292,8 +300,9 @@ h1 {
     .mobile-controls-container {
         display: block;
         width: 100%;
-        margin-top: auto;
-        padding-bottom: 20px;
+        height: 20svh;
+        flex-shrink: 0;
+        padding: 5px 0;
     }
 
     .mobile-zone {
@@ -301,6 +310,7 @@ h1 {
         justify-content: center;
         align-items: center;
         width: 100%;
+        height: 100%;
     }
 
     .mobile-zone.hidden {
@@ -312,6 +322,7 @@ h1 {
         display: flex;
         align-items: center;
         width: var(--game-width);
+        height: 100%;
         gap: 10px;
         margin: 0 auto;
         padding: 0 5px;
@@ -319,24 +330,21 @@ h1 {
 
     .dpad>.ctrl-btn {
         flex: 1;
-        height: 120px;
-        /* Taller side buttons */
+        height: 16svh;
     }
 
     .dpad>.dpad-vertical {
         flex: 1.5;
-        /* Wider middle column */
-    }
-
-    .dpad-vertical {
         display: flex;
         flex-direction: column;
-        gap: 10px;
+        gap: 1svh;
+        justify-content: center;
+        height: 100%;
     }
 
     .ctrl-btn {
         width: 100%;
-        height: 55px;
+        height: 8svh;
         /* Taller Up/Down buttons */
         border-radius: 12px;
         border: 2px solid #00ffcc;
