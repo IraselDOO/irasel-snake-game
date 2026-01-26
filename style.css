@@ -7,7 +7,7 @@
     --text-dim: #8899aa;
     --danger: #ff0055;
     --glass-border: rgba(255, 255, 255, 0.1);
-    --game-width: calc(100vw - 10px);
+    --game-width: 95vw;
 }
 
 body {
@@ -22,31 +22,25 @@ body {
     overflow: hidden;
 }
 
-/* Full screen background for ambient effects */
+/* Background Effects */
 #ambientCanvas {
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
+    inset: 0;
     pointer-events: none;
     z-index: -1;
     background: radial-gradient(circle at center, #1a1a2e 0%, #000 100%);
-    will-change: transform;
 }
 
 body::after {
     content: '';
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
+    inset: 0;
     background: radial-gradient(circle at center, transparent 40%, rgba(0, 0, 0, 0.4) 100%);
     pointer-events: none;
     z-index: 2;
 }
 
+/* Main Layout */
 .game-wrapper {
     display: flex;
     flex-direction: column;
@@ -59,6 +53,16 @@ body::after {
     min-height: 100vh;
 }
 
+.main-container {
+    display: flex;
+    flex-direction: row;
+    /* Desktop side-by-side */
+    align-items: flex-start;
+    justify-content: center;
+    gap: 40px;
+}
+
+/* Game Canvas Container */
 .canvas-container {
     position: relative;
     box-shadow: 0 0 50px rgba(0, 255, 204, 0.15);
@@ -66,28 +70,29 @@ body::after {
     padding: 2px;
     background: linear-gradient(45deg, #1a1a2e, #000);
     overflow: hidden;
-    /* Resolution is now driven by JS canvas attributes */
-    max-height: 80vh;
+    max-height: 85vh;
     max-width: 90vw;
     margin: 0 auto;
 }
 
-canvas {
+canvas#gameCanvas {
     display: block;
-    width: 100%;
-    height: 100%;
+    width: auto;
+    height: auto;
+    max-width: 100%;
+    max-height: 80vh;
     background-color: #111;
     cursor: none;
     object-fit: contain;
 }
 
-/* Stats Panel */
+/* Stats Panels */
 .stats-panel {
     width: 250px;
     background: var(--panel-bg);
     padding: 25px;
     border-radius: 16px;
-    backdrop-filter: blur(15px) saturate(150%);
+    backdrop-filter: blur(15px);
     border: 1px solid var(--glass-border);
     display: flex;
     flex-direction: column;
@@ -99,32 +104,6 @@ canvas {
     display: flex;
     flex-direction: column;
     position: relative;
-}
-
-.reset-btn {
-    position: absolute;
-    top: -5px;
-    right: -5px;
-    background: rgba(255, 68, 68, 0.1);
-    border: 1px solid rgba(255, 68, 68, 0.3);
-    color: #ff4444;
-    cursor: pointer;
-    border-radius: 50%;
-    width: 20px;
-    height: 20px;
-    font-size: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.3s ease;
-    padding: 0;
-    line-height: 1;
-}
-
-.reset-btn:hover {
-    background: rgba(255, 68, 68, 0.3);
-    border-color: #ff4444;
-    transform: rotate(-180deg);
 }
 
 .stat-box.small {
@@ -146,7 +125,6 @@ canvas {
     text-shadow: 0 0 10px var(--accent-glow);
 }
 
-/* Progress Bar */
 .stat-bar-container {
     background: rgba(0, 0, 0, 0.3);
     padding: 15px;
@@ -164,7 +142,6 @@ canvas {
 .fill {
     height: 100%;
     background: var(--accent-color);
-    box-shadow: 0 0 10px var(--accent-color);
     transition: width 0.3s ease;
 }
 
@@ -174,38 +151,7 @@ canvas {
     text-align: right;
 }
 
-/* Overlay & Buttons */
-.overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.7);
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    backdrop-filter: blur(5px);
-    transition: opacity 0.3s;
-}
-
-.overlay.hidden {
-    opacity: 0;
-    pointer-events: none;
-}
-
-h1 {
-    font-size: 48px;
-    margin-bottom: 10px;
-    background: linear-gradient(to right, #00ffcc, #0088ff);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-    filter: drop-shadow(0 0 10px rgba(0, 255, 204, 0.5));
-}
-
-/* Mobile Controls & Settings */
+/* Control Settings (Non-mobile) */
 .controls-settings {
     background: rgba(0, 0, 0, 0.3);
     padding: 12px;
@@ -221,184 +167,57 @@ h1 {
     padding: 8px;
     border-radius: 4px;
     font-family: inherit;
-    font-size: 14px;
-    margin-top: 5px;
     cursor: pointer;
 }
 
-/* Containers */
-.main-container {
-    display: flex;
-    flex-direction: row;
-    /* Desktop: side by side */
-    align-items: flex-start;
-    justify-content: center;
-    gap: 40px;
-    width: auto;
-}
-
-.mobile-stats-bar {
-    display: none;
-    /* Desktop hidden */
-}
-
-/* Mobile Zones */
-.mobile-controls-container {
-    display: none;
-    width: 100%;
-    height: auto;
-    padding: 10px 0;
-}
-
-.mobile-zone {
-    width: 100%;
-    height: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-.mobile-zone.hidden {
-    display: none;
-}
-
-/* Joystick Styles */
-#joystickBase {
-    width: 130px;
-    height: 130px;
-    background: rgba(255, 255, 255, 0.05);
-    border: 3px solid var(--accent-color);
-    border-radius: 50%;
-    position: relative;
-    backdrop-filter: blur(10px);
-}
-
-#joystickStick {
-    width: 55px;
-    height: 55px;
-    background: var(--accent-color);
-    border-radius: 50%;
+/* Overlays */
+.overlay {
     position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    box-shadow: 0 0 25px var(--accent-glow);
-}
-
-/* DPAD Styles */
-.dpad {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-    user-select: none;
-    width: var(--game-width);
-    max-width: 100%;
-    padding: 0 10px;
-    box-sizing: border-box;
-    margin: 0 auto;
-}
-
-.dpad-vertical {
+    inset: 0;
+    background: rgba(0, 0, 0, 0.7);
     display: flex;
     flex-direction: column;
-    gap: 8px;
-}
-
-/* RECTANGULAR BUTTON DESIGN - PREMIUM */
-.ctrl-btn {
-    width: 75px;
-    height: 45px;
-    border-radius: 12px;
-    border: 2px solid #00ffcc;
-    background: linear-gradient(160deg, rgba(30, 50, 60, 0.95) 0%, rgba(10, 20, 25, 0.98) 100%);
-    position: relative;
-    display: flex;
-    align-items: center;
     justify-content: center;
-    cursor: pointer;
-    -webkit-tap-highlight-color: transparent;
-    transition: all 0.15s ease;
-    box-shadow: 0 0 15px rgba(0, 255, 204, 0.3),
-        0 4px 15px rgba(0, 0, 0, 0.6),
-        inset 0 1px 1px rgba(255, 255, 255, 0.1),
-        inset 0 -2px 10px rgba(0, 0, 0, 0.3);
+    align-items: center;
+    backdrop-filter: blur(5px);
+    transition: opacity 0.3s;
+    z-index: 5;
 }
 
-/* Glass shine overlay */
-.ctrl-btn::before {
-    content: '';
-    position: absolute;
-    top: 3px;
-    left: 10%;
-    right: 10%;
-    height: 35%;
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.12), transparent);
-    border-radius: 10px 10px 50% 50%;
+.overlay.hidden {
+    opacity: 0;
     pointer-events: none;
 }
 
-/* Hide circular elements on rectangular buttons */
-.btn-ring,
-.btn-glass {
-    display: none;
-}
-
-/* Arrow icon - FILLED TRIANGLES */
-.btn-arrow {
-    display: block;
-    width: 20px;
-    height: 20px;
-    filter: drop-shadow(0 0 8px #00ffcc);
-    transition: all 0.12s ease;
-}
-
-.btn-arrow polygon {
-    fill: #00ffcc;
-}
-
-.ctrl-btn:active .btn-arrow polygon {
-    fill: #fff;
-}
-
-/* Active state - press animation */
-.ctrl-btn:active {
-    transform: scale(0.94) translateY(3px);
-    border-color: #fff;
-    background: linear-gradient(160deg, rgba(0, 80, 70, 0.95) 0%, rgba(0, 40, 35, 0.98) 100%);
-    box-shadow: 0 0 35px rgba(0, 255, 204, 0.7),
-        0 0 60px rgba(0, 255, 204, 0.4),
-        inset 0 0 20px rgba(0, 255, 204, 0.2);
-}
-
-.ctrl-btn:active .btn-arrow {
-    stroke: #fff;
-    filter: drop-shadow(0 0 15px #fff);
-}
-
-.ctrl-btn:active .btn-arrow path {
-    stroke: #fff;
+h1 {
+    font-size: 48px;
+    margin-bottom: 10px;
+    background: linear-gradient(to right, #00ffcc, #0088ff);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
 }
 
 .version-overlay {
     position: absolute;
     top: 15px;
     right: 20px;
-    font-size: 12px;
+    font-size: 10px;
     color: var(--accent-color);
-    opacity: 0.6;
-    letter-spacing: 1.5px;
-    font-family: monospace;
+    opacity: 0.5;
     pointer-events: none;
-    z-index: 10;
 }
 
-/* RESPONSIVE OVERHAUL */
+/* Mobile Hidden Elements */
+.mobile-stats-bar,
+.mobile-controls-container {
+    display: none;
+}
+
+/* Mobile Portrait Overrides */
 @media (max-width: 950px) {
     .game-wrapper {
-        flex-direction: column;
         justify-content: flex-start;
-        height: 100%;
         padding: 5px;
         gap: 10px;
         min-height: auto;
@@ -407,7 +226,6 @@ h1 {
     .main-container {
         flex-direction: column;
         align-items: center;
-        gap: 10px;
         width: 100%;
     }
 
@@ -419,7 +237,7 @@ h1 {
         display: flex;
         width: 100%;
         justify-content: center;
-        gap: 20px;
+        gap: 15px;
         padding: 10px;
         background: var(--panel-bg);
         border-bottom: 1px solid var(--glass-border);
@@ -434,91 +252,118 @@ h1 {
     .m-stat span:last-child {
         color: var(--accent-color);
         font-weight: bold;
-        margin-left: 5px;
+        margin-left: 4px;
     }
 
     .m-select {
         background: #111;
         color: var(--accent-color);
         border: 1px solid var(--accent-color);
+        padding: 4px;
         border-radius: 4px;
         font-size: 12px;
-        padding: 4px;
-        font-family: inherit;
     }
 
     .m-reset {
         background: transparent;
         border: 1px solid #ff4444;
         color: #ff4444;
-        width: 30px;
-        height: 30px;
+        width: 28px;
+        height: 28px;
         border-radius: 50%;
-        padding: 0;
-        margin: 0;
-        font-size: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
 
     .canvas-container {
         width: var(--game-width);
-        max-width: 480px;
-        /* Safety cap */
-        height: auto;
         aspect-ratio: 9/16;
-        max-height: 72vh;
-        margin: 10px auto;
-        flex-shrink: 0;
+        max-height: 70vh;
+        margin: 5px auto;
     }
 
     canvas#gameCanvas {
         width: 100%;
         height: 100%;
-        display: block;
         object-fit: fill;
-        /* Force fill to match container aspect-ratio */
     }
 
     .mobile-controls-container {
         display: block;
+        width: 100%;
         margin-top: auto;
-        /* Push to bottom */
         padding-bottom: 20px;
     }
 
+    .mobile-zone {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 100%;
+    }
+
+    .mobile-zone.hidden {
+        display: none;
+    }
+
+    /* DPAD Full Width */
+    .dpad {
+        display: flex;
+        align-items: center;
+        width: var(--game-width);
+        gap: 10px;
+        margin: 0 auto;
+        padding: 0 5px;
+    }
+
+    .dpad>.ctrl-btn,
+    .dpad>.dpad-vertical {
+        flex: 1;
+    }
+
+    .dpad-vertical {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .ctrl-btn {
+        width: 100%;
+        height: 45px;
+        border-radius: 10px;
+        border: 2px solid #00ffcc;
+        background: linear-gradient(160deg, rgba(30, 50, 60, 0.95), rgba(10, 20, 25, 0.98));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 0 12px rgba(0, 255, 204, 0.3);
+    }
+
+    .ctrl-btn:active {
+        transform: scale(0.95);
+        background: var(--accent-color);
+    }
+
+    .btn-arrow {
+        width: 20px;
+        height: 20px;
+    }
+
+    .btn-arrow polygon {
+        fill: #00ffcc;
+    }
+
+    .ctrl-btn:active polygon {
+        fill: #000;
+    }
+
     h1 {
-        font-size: 28px;
+        font-size: 24px;
     }
 }
 
-#startBtn {
-    margin-top: 30px;
-    background: transparent;
-    color: var(--accent-color);
-    border: 2px solid var(--accent-color);
-    padding: 15px 40px;
-    font-size: 18px;
-    font-family: inherit;
-    font-weight: bold;
-    cursor: pointer;
-    text-transform: uppercase;
-    letter-spacing: 4px;
-    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    box-shadow: 0 0 15px rgba(0, 255, 204, 0.2);
-    position: relative;
-}
-
-#startBtn:hover {
-    background: var(--accent-color);
-    color: #000;
-    box-shadow: 0 0 40px var(--accent-color);
-    transform: scale(1.05);
-}
-
-#startBtn:active {
-    transform: scale(0.95);
-}
-
-/* Landscape Warning Overlay */
+/* Landscape Lock */
 .landscape-warning {
     display: none;
     position: fixed;
@@ -529,16 +374,13 @@ h1 {
     justify-content: center;
     align-items: center;
     color: var(--accent-color);
-    font-size: 24px;
     text-align: center;
-    padding: 20px;
 }
 
 .landscape-warning::before {
     content: '📱';
-    font-size: 80px;
-    margin-bottom: 20px;
-    animation: rotate-phone 1.5s ease-in-out infinite;
+    font-size: 60px;
+    animation: rotate-phone 1.5s infinite;
 }
 
 @keyframes rotate-phone {
@@ -561,4 +403,21 @@ h1 {
     .game-wrapper {
         display: none;
     }
+}
+
+#startBtn {
+    margin-top: 20px;
+    background: transparent;
+    color: var(--accent-color);
+    border: 2px solid var(--accent-color);
+    padding: 12px 30px;
+    font-weight: bold;
+    letter-spacing: 3px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+#startBtn:hover {
+    background: var(--accent-color);
+    color: #000;
 }

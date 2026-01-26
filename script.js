@@ -1,4 +1,4 @@
-// States
+const VERSION = "v2.11.0 CLEAN & FAST";
 const STATE_START = 'start';
 const STATE_PLAYING = 'playing';
 const STATE_DEAD = 'dead';
@@ -27,7 +27,16 @@ const elements = {
     progress: document.getElementById('progressFill'),
     ratio: document.getElementById('ratioText'),
     efficiency: document.getElementById('efficiency'),
-    duration: document.getElementById('sessionTime')
+    duration: document.getElementById('sessionTime'),
+    version: document.querySelectorAll('.version-overlay'),
+    startScreen: document.getElementById('startScreen'),
+    startBtn: document.getElementById('startBtn'),
+    splitZone: document.getElementById('splitZone'),
+    joystickZone: document.getElementById('joystickZone'),
+    schemeSelect: document.getElementById('controlScheme'),
+    schemeSelectMobile: document.getElementById('controlSchemeMobile'),
+    joystickBase: document.getElementById('joystickBase'),
+    joystickStick: document.getElementById('joystickStick')
 };
 
 // Constants
@@ -109,15 +118,19 @@ const audio = new AudioSystem();
 
 function init() {
     try {
-        window.addEventListener('resize', () => { resizeAmbient(); });
+        window.addEventListener('resize', () => {
+            resizeAmbient();
+            updateGridDimensions(); // Adaptive resize
+            renderBoardBuffer(); // Redraw grid on resize
+        });
         resizeAmbient();
-        updateGridDimensions(); // Set initial grid based on screen
+        updateGridDimensions();
         initGridState();
         updateStatsUI(0);
         renderBoardBuffer();
         initAmbientParticles();
         initMobileControls();
-        console.log("System Ready");
+        console.log("System Ready - " + VERSION);
         requestAnimationFrame(renderLoop);
     } catch (e) {
         console.error("Init Error:", e);
@@ -126,37 +139,39 @@ function init() {
 }
 
 function updateGridDimensions() {
-    // Check if mobile (width <= 950px matching CSS breakpoint)
     const isMobile = window.innerWidth <= 950;
 
     if (isMobile) {
         GRID_W = 18;
         GRID_H = 32; // 9:16 Portrait
+        canvas.width = 540;
+        canvas.height = 960;
     } else {
         GRID_W = 24;
         GRID_H = 24; // 1:1 Square Desktop
+        canvas.width = 600;
+        canvas.height = 600;
     }
 
     // Recalculate derived constants
-    TILE_SIZE = Math.floor(canvas.width / GRID_W);
+    TILE_SIZE = canvas.width / GRID_W;
     DEPTH = TILE_SIZE * 0.15;
 
-    // Update canvas height to match grid aspect ratio
+    // Update buffer canvas and display height
     boardCanvas.width = canvas.width;
-    boardCanvas.height = TILE_SIZE * GRID_H;
-    canvas.height = boardCanvas.height;
+    boardCanvas.height = canvas.height;
 
-    // Force control scheme to split on mobile if not already set by user
+    // Sync version text
+    if (elements.version) {
+        elements.version.forEach(v => v.textContent = VERSION);
+    }
+
+    // Force control scheme on mobile
     if (isMobile && (controlScheme === 'keyboard' || !controlScheme)) {
         controlScheme = 'split';
-        const schemeSelect = document.getElementById('controlScheme');
-        const schemeSelectMobile = document.getElementById('controlSchemeMobile');
-        if (schemeSelect) schemeSelect.value = 'split';
-        if (schemeSelectMobile) schemeSelectMobile.value = 'split';
-
-        // Immediate UI update if game already initialized
-        const splitZone = document.getElementById('splitZone');
-        if (splitZone) splitZone.classList.remove('hidden');
+        if (elements.schemeSelect) elements.schemeSelect.value = 'split';
+        if (elements.schemeSelectMobile) elements.schemeSelectMobile.value = 'split';
+        if (elements.splitZone) elements.splitZone.classList.remove('hidden');
     }
 }
 
@@ -212,7 +227,7 @@ function startGame() {
         initGridState();
         renderBoardBuffer();
 
-        startScreen.classList.add('hidden');
+        if (elements.startScreen) elements.startScreen.classList.add('hidden');
         gameState = STATE_PLAYING;
         isPaused = false;
         spawnFood(); updateStatsUI(0);
@@ -250,7 +265,7 @@ function gameLoop() {
 
     if (head.x === food.x && head.y === food.y) {
         // Calculate base reward with time decay: 10 - seconds since spawn, min 1.
-        const secondsElapsed = Math.floor((Date.now() - lastFoodTime) / 1000);
+        const secondsElapsed = Math.floor((performance.now() - lastFoodTime) / 1000);
         let reward = Math.max(1, 10 - secondsElapsed);
 
         // Darkness Bonus (if active): apple points + snake length
@@ -270,9 +285,9 @@ function gameLoop() {
         borderFlashTimer = 1.0; borderFlashHue = foodHue;
         shakeIntensity = 12;
 
-        const eatDuration = (Date.now() - lastFoodTime) / 1000;
+        const eatDuration = (performance.now() - lastFoodTime) / 1000;
         audio.playEat(eatDuration);
-        lastFoodTime = Date.now();
+        lastFoodTime = performance.now();
 
         spawnParticles(head.x, head.y, foodHue);
         spawnFloatingText(head.x, head.y, `+${reward}`, isDarknessActive ? "#00ffcc" : "#fff");
@@ -579,7 +594,7 @@ function spawnFood() {
         goldenFoodTimer = 5000; // 5 seconds lifespan
         currentGoldenChance = 0.05; // Reset to 5%
     } else {
-        currentGoldenChance += 0.02; // Increase chance by 2% for next time
+        currentGoldenChance = Math.min(0.40, currentGoldenChance + 0.02); // Cap at 40%
     }
 }
 
@@ -645,42 +660,52 @@ function gameOver() {
     }));
 
     for (let s of snake) spawnParticles(s.x, s.y, snakeHue, 20);
-    if (score > highScore) { highScore = score; localStorage.setItem('snakeHighScore', highScore); startScreen.querySelector('h1').textContent = "NEW RECORD!"; }
-    else startScreen.querySelector('h1').textContent = "GAME OVER";
-    startScreen.querySelector('p').textContent = `Score: ${score} | Time: ${Math.floor((Date.now() - startTime) / 1000)}s`;
-    startBtn.textContent = "REBOOT SYSTEM";
-    setTimeout(() => { if (gameState === STATE_DEAD) startScreen.classList.remove('hidden'); }, 3000);
+
+    const h1 = elements.startScreen.querySelector('h1');
+    const p = elements.startScreen.querySelector('p');
+
+    if (score > highScore) {
+        highScore = score;
+        localStorage.setItem('snakeHighScore', highScore);
+        if (h1) h1.textContent = "NEW RECORD!";
+    } else {
+        if (h1) h1.textContent = "GAME OVER";
+    }
+
+    const sessionDuration = Math.floor((performance.now() - startTime) / 1000);
+    if (p) p.textContent = `Score: ${score} | Time: ${sessionDuration}s`;
+    if (elements.startBtn) elements.startBtn.textContent = "REBOOT SYSTEM";
+
+    setTimeout(() => {
+        if (gameState === STATE_DEAD && elements.startScreen) {
+            elements.startScreen.classList.remove('hidden');
+        }
+    }, 3000);
 }
 
 function initMobileControls() {
-    const schemeSelect = document.getElementById('controlScheme');
-    const schemeSelectMobile = document.getElementById('controlSchemeMobile');
-    const joystickZone = document.getElementById('joystickZone');
-    const splitZone = document.getElementById('splitZone');
-    const joystickBase = document.getElementById('joystickBase');
-    const joystickStick = document.getElementById('joystickStick');
-
     // Sync UI with initial state
-    if (schemeSelect) schemeSelect.value = controlScheme;
-    if (schemeSelectMobile) schemeSelectMobile.value = controlScheme;
+    if (elements.schemeSelect) elements.schemeSelect.value = controlScheme;
+    if (elements.schemeSelectMobile) elements.schemeSelectMobile.value = controlScheme;
     updateControlVisibility();
 
     function updateControlVisibility() {
-        joystickZone.classList.add('hidden');
-        splitZone.classList.add('hidden');
-        if (controlScheme === 'joystick') joystickZone.classList.remove('hidden');
-        if (controlScheme === 'split') splitZone.classList.remove('hidden');
+        if (!elements.joystickZone || !elements.splitZone) return;
+        elements.joystickZone.classList.add('hidden');
+        elements.splitZone.classList.add('hidden');
+        if (controlScheme === 'joystick') elements.joystickZone.classList.remove('hidden');
+        if (controlScheme === 'split') elements.splitZone.classList.remove('hidden');
     }
 
     const onSchemeChange = (e) => {
         controlScheme = e.target.value;
-        if (schemeSelect) schemeSelect.value = controlScheme;
-        if (schemeSelectMobile) schemeSelectMobile.value = controlScheme;
+        if (elements.schemeSelect) elements.schemeSelect.value = controlScheme;
+        if (elements.schemeSelectMobile) elements.schemeSelectMobile.value = controlScheme;
         updateControlVisibility();
     };
 
-    if (schemeSelect) schemeSelect.addEventListener('change', onSchemeChange);
-    if (schemeSelectMobile) schemeSelectMobile.addEventListener('change', onSchemeChange);
+    if (elements.schemeSelect) elements.schemeSelect.addEventListener('change', onSchemeChange);
+    if (elements.schemeSelectMobile) elements.schemeSelectMobile.addEventListener('change', onSchemeChange);
 
     // GLOBAL SWIPE (Works everywhere for maximum reach)
     let touchStart = null;
@@ -809,5 +834,5 @@ document.getElementById('resetBestBtn').addEventListener('click', () => {
     }
 });
 
-startBtn.addEventListener('click', startGame);
+if (elements.startBtn) elements.startBtn.addEventListener('click', startGame);
 init();
