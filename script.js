@@ -1,4 +1,4 @@
-const VERSION = "v2.11.0 CLEAN & FAST";
+const VERSION = "v2.11.2 ERGO FIXED";
 const STATE_START = 'start';
 const STATE_PLAYING = 'playing';
 const STATE_DEAD = 'dead';
