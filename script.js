@@ -1,4 +1,4 @@
-const VERSION = "v2.11.2 ERGO FIXED";
+const VERSION = "v2.12.3 SCORE BOOM";
 const STATE_START = 'start';
 const STATE_PLAYING = 'playing';
 const STATE_DEAD = 'dead';
@@ -22,6 +22,8 @@ const boardCtx = boardCanvas.getContext('2d');
 const elements = {
     score: document.getElementById('score'),
     mScore: document.getElementById('m-score'),
+    apples: document.getElementById('apples'),
+    mApples: document.getElementById('m-apples'),
     best: document.getElementById('bestScore'),
     mBest: document.getElementById('m-best'),
     progress: document.getElementById('progressFill'),
@@ -621,17 +623,34 @@ function renderParticles(dt) {
 function spawnFloatingText(gx, gy, t, c = "#fff") { floatingTexts.push({ x: gx * TILE_SIZE + TILE_SIZE / 2, y: gy * TILE_SIZE, text: t, life: 1, off: 0, col: c }); }
 
 function renderFloatingTexts(dt) {
-    const spd = dt / 16.67; ctx.font = 'bold 16px Orbitron'; ctx.textAlign = 'center';
+    const spd = dt / 16.67;
+    ctx.textAlign = 'center';
     for (let i = floatingTexts.length - 1; i >= 0; i--) {
-        const f = floatingTexts[i]; f.off -= spd; f.life -= 0.02 * spd;
+        const f = floatingTexts[i];
+        f.off -= (spd * 0.8); // Slightly slower rise
+        f.life -= 0.02 * spd;
         if (f.life <= 0) { floatingTexts.splice(i, 1); continue; }
-        ctx.globalAlpha = f.life; ctx.fillStyle = f.col; ctx.fillText(f.text, f.x, f.y + f.off); ctx.globalAlpha = 1;
+
+        // Animation: Grow from 0.5 to 1.3 then fade
+        const progress = 1 - f.life; // 0 to 1
+        const scale = 0.5 + Math.sin(progress * Math.PI * 0.5) * 0.8;
+
+        ctx.save();
+        ctx.translate(f.x, f.y + f.off);
+        ctx.scale(scale, scale);
+        ctx.globalAlpha = f.life;
+        ctx.fillStyle = f.col;
+        ctx.font = 'bold 16px Orbitron';
+        ctx.fillText(f.text, 0, 0);
+        ctx.restore();
     }
 }
 
 function updateStatsUI(s) {
     if (elements.score) elements.score.innerText = s;
     if (elements.mScore) elements.mScore.innerText = s;
+    if (elements.apples) elements.apples.innerText = foodsEaten;
+    if (elements.mApples) elements.mApples.innerText = foodsEaten;
 
     const best = parseInt(localStorage.getItem('snakeHighScore') || 0);
     if (elements.best) elements.best.innerText = best;
@@ -673,7 +692,7 @@ function gameOver() {
     }
 
     const sessionDuration = Math.floor((performance.now() - startTime) / 1000);
-    if (p) p.textContent = `Score: ${score} | Time: ${sessionDuration}s`;
+    if (p) p.textContent = `Score: ${score} | Apples: ${foodsEaten} | Time: ${sessionDuration}s`;
     if (elements.startBtn) elements.startBtn.textContent = "REBOOT SYSTEM";
 
     setTimeout(() => {

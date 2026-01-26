@@ -279,7 +279,7 @@ h1 {
     .canvas-container {
         width: var(--game-width);
         aspect-ratio: 9/16;
-        max-height: 70vh;
+        max-height: 78vh;
         margin: 5px auto;
     }
 
@@ -319,7 +319,7 @@ h1 {
 
     .dpad>.ctrl-btn {
         flex: 1;
-        height: 100px;
+        height: 120px;
         /* Taller side buttons */
     }
 
@@ -336,7 +336,8 @@ h1 {
 
     .ctrl-btn {
         width: 100%;
-        height: 45px;
+        height: 55px;
+        /* Taller Up/Down buttons */
         border-radius: 12px;
         border: 2px solid #00ffcc;
         background: linear-gradient(160deg, rgba(30, 50, 60, 0.95), rgba(10, 20, 25, 0.98));
