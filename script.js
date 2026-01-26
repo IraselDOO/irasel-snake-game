@@ -1,4 +1,4 @@
-const VERSION = "v2.12.4 MOBILE FIT FIXED";
+const VERSION = "v2.13.1 SHAPE SHIFT";
 const STATE_START = 'start';
 const STATE_PLAYING = 'playing';
 const STATE_DEAD = 'dead';
@@ -450,10 +450,21 @@ function drawSnake(currentTime, dt) {
         const isHead = (i === 0 && gameState !== STATE_DEAD);
         let sc = isHead ? 1.3 : 1;
         if (i === targetSnake.length - 1) sc = 0.7 * (1 - moveProgress * 0.3); // Smooth tail shrinking
-        if (s.hasFood) sc += (0.4 * (1 - i / targetSnake.length));
+
+        if (s.hasFood && gameState !== STATE_DEAD) {
+            // Breathing pulse: 1.0 to 1.4 scale
+            const pulse = 0.2 * Math.sin(currentTime * 0.01 + i * 0.5);
+            sc += (0.2 + pulse);
+
+            // Occasional "energy dust" particles
+            if (Math.random() < 0.15) {
+                spawnParticles(ix, iy, snakeHue, 1, 0.2); // Tiny, slow particles
+            }
+        }
 
         ctx.globalAlpha = alpha;
-        drawBlockSmooth3D(ix, iy, snakeColors, isHead, sc, s.hasFood, angle);
+        const shape = s.hasFood ? 'triangle' : 'cube';
+        drawBlockSmooth3D(ix, iy, snakeColors, isHead, sc, s.hasFood, angle, shape);
     }
     ctx.globalAlpha = 1;
 }
@@ -492,22 +503,50 @@ function drawDiamond3D(gx, gy, colors, pulse = false, scale = 1, shimmer = false
     }
 }
 
-function drawBlockSmooth3D(fx, fy, colors, head = false, scale = 1, shm = false, angle = 0) {
+function drawBlockSmooth3D(fx, fy, colors, head = false, scale = 1, shm = false, angle = 0, shape = 'cube') {
     const size = (TILE_SIZE - 6) * scale;
     const x = fx * TILE_SIZE + TILE_SIZE / 2;
     const y = fy * TILE_SIZE + TILE_SIZE / 2;
     const r = 4 * scale; const d = DEPTH * scale;
     ctx.save(); ctx.translate(x, y); ctx.rotate(angle);
-    ctx.fillStyle = colors.side; drawRoundedRect(-size / 2, -size / 2 + d, size, size, r); ctx.fill();
-    ctx.fillStyle = colors.top; if (head) { ctx.shadowColor = colors.glow; ctx.shadowBlur = 20; }
-    drawRoundedRect(-size / 2, -size / 2, size, size, r); ctx.fill();
+
+    if (shape === 'triangle') {
+        const sz = size / 2;
+        // 3D Triangle Side (Shadow)
+        ctx.fillStyle = colors.side;
+        ctx.beginPath();
+        ctx.moveTo(0, -sz + d); ctx.lineTo(sz, sz + d); ctx.lineTo(-sz, sz + d);
+        ctx.closePath(); ctx.fill();
+
+        // 3D Triangle Top
+        ctx.fillStyle = colors.top;
+        ctx.shadowColor = colors.glow; ctx.shadowBlur = 20;
+        ctx.beginPath();
+        ctx.moveTo(0, -sz); ctx.lineTo(sz, sz); ctx.lineTo(-sz, sz);
+        ctx.closePath(); ctx.fill();
+    } else {
+        // Standard Cube
+        ctx.fillStyle = colors.side; drawRoundedRect(-size / 2, -size / 2 + d, size, size, r); ctx.fill();
+        ctx.fillStyle = colors.top; if (head) { ctx.shadowColor = colors.glow; ctx.shadowBlur = 20; }
+        drawRoundedRect(-size / 2, -size / 2, size, size, r); ctx.fill();
+    }
+
     if (head) {
         ctx.shadowBlur = 10; ctx.shadowColor = '#fff'; ctx.fillStyle = '#fff'; ctx.beginPath();
         ctx.arc(size / 4, -size / 4, 3 * scale, 0, Math.PI * 2); ctx.arc(size / 4, size / 4, 3 * scale, 0, Math.PI * 2); ctx.fill();
     }
+
     if (shm) {
-        ctx.fillStyle = `rgba(255,255,255,${0.2 + 0.3 * Math.sin(Date.now() * 0.02)})`;
-        drawRoundedRect(-size / 2, -size / 2, size, size, r); ctx.fill();
+        // Restore white flash pulse + subtle energy glow
+        const flash = 0.2 + 0.3 * Math.sin(performance.now() * 0.02);
+        ctx.fillStyle = `rgba(255,255,255,${flash})`;
+        if (shape === 'triangle') {
+            const sz = size / 2;
+            ctx.beginPath(); ctx.moveTo(0, -sz); ctx.lineTo(sz, sz); ctx.lineTo(-sz, sz); ctx.closePath();
+        } else {
+            drawRoundedRect(-size / 2, -size / 2, size, size, r);
+        }
+        ctx.fill();
     }
     ctx.restore(); ctx.shadowBlur = 0;
 }
@@ -625,23 +664,34 @@ function spawnFloatingText(gx, gy, t, c = "#fff") { floatingTexts.push({ x: gx *
 function renderFloatingTexts(dt) {
     const spd = dt / 16.67;
     ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
     for (let i = floatingTexts.length - 1; i >= 0; i--) {
         const f = floatingTexts[i];
-        f.off -= (spd * 0.8); // Slightly slower rise
-        f.life -= 0.02 * spd;
+        f.off -= (spd * 0.7);
+        f.life -= 0.015 * spd;
         if (f.life <= 0) { floatingTexts.splice(i, 1); continue; }
 
-        // Animation: Grow from 0.5 to 1.3 then fade
-        const progress = 1 - f.life; // 0 to 1
-        const scale = 0.5 + Math.sin(progress * Math.PI * 0.5) * 0.8;
+        const progress = 1 - f.life;
+        const scale = 0.5 + Math.sin(progress * Math.PI * 0.5) * 2.5;
 
         ctx.save();
         ctx.translate(f.x, f.y + f.off);
         ctx.scale(scale, scale);
         ctx.globalAlpha = f.life;
+
+        ctx.font = 'bold 32px Orbitron';
+
+        // 1. Draw thick stroke for contrast on ANY background
+        ctx.strokeStyle = '#000';
+        ctx.lineWidth = 4;
+        ctx.strokeText(f.text, 0, 0);
+
+        // 2. Draw the main colored text
         ctx.fillStyle = f.col;
-        ctx.font = 'bold 16px Orbitron';
+        ctx.shadowColor = f.col;
+        ctx.shadowBlur = 15;
         ctx.fillText(f.text, 0, 0);
+
         ctx.restore();
     }
 }
