@@ -216,7 +216,7 @@ function startGame() {
         gameState = STATE_PLAYING;
         isPaused = false;
         spawnFood(); updateStatsUI(0);
-        lastFoodTime = Date.now(); // Start timer for first food
+        lastFoodTime = performance.now(); // Consistent high-res timer
         lastRenderTime = performance.now();
         lastLogicTick = lastRenderTime;
         logicAccumulator = 0;

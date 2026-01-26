@@ -461,20 +461,28 @@ h1 {
 
     .canvas-container {
         width: var(--game-width);
-        max-width: 100%;
+        max-width: 480px;
+        /* Safety cap */
         height: auto;
-        max-height: 60vh;
-        margin: 0 auto;
+        aspect-ratio: 9/16;
+        max-height: 72vh;
+        margin: 10px auto;
+        flex-shrink: 0;
     }
 
     canvas#gameCanvas {
         width: 100%;
-        height: auto;
+        height: 100%;
         display: block;
+        object-fit: fill;
+        /* Force fill to match container aspect-ratio */
     }
 
     .mobile-controls-container {
         display: block;
+        margin-top: auto;
+        /* Push to bottom */
+        padding-bottom: 20px;
     }
 
     h1 {
