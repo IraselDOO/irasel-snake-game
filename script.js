@@ -15,8 +15,7 @@ const startScreen = document.getElementById('startScreen');
 // Off-screen board buffer
 const boardCanvas = document.createElement('canvas');
 const boardCtx = boardCanvas.getContext('2d');
-boardCanvas.width = canvas.width;
-boardCanvas.height = canvas.height;
+// Note: boardCanvas dimensions are set in updateGridDimensions()
 
 // Stats UI
 // Stats UI Cache
@@ -32,9 +31,9 @@ const elements = {
 };
 
 // Constants
-const GRID_SIZE = 24;
-const TILE_SIZE = canvas.width / GRID_SIZE;
-const DEPTH = TILE_SIZE * 0.15;
+// Constants
+// Constants - Dynamic
+let GRID_W, GRID_H, TILE_SIZE, DEPTH;
 const COLOR_BOARD_BG = '#050510';
 const COLOR_SCAR_MARK = 'rgba(0, 255, 204, 0.5)';
 const COLOR_BORDER = '#00ffcc';
@@ -109,15 +108,56 @@ class AudioSystem {
 const audio = new AudioSystem();
 
 function init() {
-    window.addEventListener('resize', resizeAmbient);
-    resizeAmbient();
-    initGridState();
-    updateStatsUI(0);
-    renderBoardBuffer();
-    initAmbientParticles();
-    initMobileControls();
-    console.log("System Ready");
-    requestAnimationFrame(renderLoop);
+    try {
+        window.addEventListener('resize', () => { resizeAmbient(); });
+        resizeAmbient();
+        updateGridDimensions(); // Set initial grid based on screen
+        initGridState();
+        updateStatsUI(0);
+        renderBoardBuffer();
+        initAmbientParticles();
+        initMobileControls();
+        console.log("System Ready");
+        requestAnimationFrame(renderLoop);
+    } catch (e) {
+        console.error("Init Error:", e);
+        alert("Init Error: " + e.message);
+    }
+}
+
+function updateGridDimensions() {
+    // Check if mobile (width <= 950px matching CSS breakpoint)
+    const isMobile = window.innerWidth <= 950;
+
+    if (isMobile) {
+        GRID_W = 18;
+        GRID_H = 32; // 9:16 Portrait
+    } else {
+        GRID_W = 24;
+        GRID_H = 24; // 1:1 Square Desktop
+    }
+
+    // Recalculate derived constants
+    TILE_SIZE = Math.floor(canvas.width / GRID_W);
+    DEPTH = TILE_SIZE * 0.15;
+
+    // Update canvas height to match grid aspect ratio
+    boardCanvas.width = canvas.width;
+    boardCanvas.height = TILE_SIZE * GRID_H;
+    canvas.height = boardCanvas.height;
+
+    // Force control scheme to split on mobile if not already set by user
+    if (isMobile && (controlScheme === 'keyboard' || !controlScheme)) {
+        controlScheme = 'split';
+        const schemeSelect = document.getElementById('controlScheme');
+        const schemeSelectMobile = document.getElementById('controlSchemeMobile');
+        if (schemeSelect) schemeSelect.value = 'split';
+        if (schemeSelectMobile) schemeSelectMobile.value = 'split';
+
+        // Immediate UI update if game already initialized
+        const splitZone = document.getElementById('splitZone');
+        if (splitZone) splitZone.classList.remove('hidden');
+    }
 }
 
 function resizeAmbient() {
@@ -141,9 +181,9 @@ function initAmbientParticles() {
 
 function initGridState() {
     gridState = []; scarState = [];
-    for (let x = 0; x < GRID_SIZE; x++) {
+    for (let x = 0; x < GRID_W; x++) {
         gridState[x] = []; scarState[x] = [];
-        for (let y = 0; y < GRID_SIZE; y++) {
+        for (let y = 0; y < GRID_H; y++) {
             gridState[x][y] = 0; scarState[x][y] = false;
         }
     }
@@ -151,36 +191,40 @@ function initGridState() {
 
 function startGame() {
     if (gameState === STATE_PLAYING) return;
+    try {
+        // RESET EVERYTHING
+        snake = [{ x: 10, y: 10 }, { x: 10, y: 11 }, { x: 10, y: 12 }];
+        dyingSnake = [];
+        direction = { x: 0, y: -1 };
+        inputQueue = [];
+        particles = [];
+        floatingTexts = [];
+        glitchTimer = 0;
+        shakeIntensity = 0;
+        isDarknessActive = false;
+        darknessTimer = 0;
+        currentGoldenChance = 0.05;
+        prevSnake = snake.map(s => ({ ...s }));
 
-    // RESET EVERYTHING
-    snake = [{ x: 10, y: 10 }, { x: 10, y: 11 }, { x: 10, y: 12 }];
-    dyingSnake = [];
-    direction = { x: 0, y: -1 };
-    inputQueue = [];
-    particles = [];
-    floatingTexts = [];
-    glitchTimer = 0;
-    shakeIntensity = 0;
-    isDarknessActive = false;
-    darknessTimer = 0;
-    currentGoldenChance = 0.05;
-    prevSnake = snake.map(s => ({ ...s }));
+        score = 0; foodsEaten = 0; startTime = performance.now(); gameSpeed = 110;
+        snakeHue = 160; foodHue = (snakeHue + 180) % 360;
+        borderFlashTimer = 0;
+        initGridState();
+        renderBoardBuffer();
 
-    score = 0; foodsEaten = 0; startTime = performance.now(); gameSpeed = 110;
-    snakeHue = 160; foodHue = (snakeHue + 180) % 360;
-    borderFlashTimer = 0;
-    initGridState();
-    renderBoardBuffer();
-
-    startScreen.classList.add('hidden');
-    gameState = STATE_PLAYING;
-    isPaused = false;
-    spawnFood(); updateStatsUI(0);
-    lastFoodTime = Date.now(); // Start timer for first food
-    lastRenderTime = performance.now();
-    lastLogicTick = lastRenderTime;
-    logicAccumulator = 0;
-    moveProgress = 0;
+        startScreen.classList.add('hidden');
+        gameState = STATE_PLAYING;
+        isPaused = false;
+        spawnFood(); updateStatsUI(0);
+        lastFoodTime = Date.now(); // Start timer for first food
+        lastRenderTime = performance.now();
+        lastLogicTick = lastRenderTime;
+        logicAccumulator = 0;
+        moveProgress = 0;
+    } catch (e) {
+        console.error("Start Game Error:", e);
+        alert("Start Error: " + e.message);
+    }
 }
 
 function gameLoop() {
@@ -195,7 +239,7 @@ function gameLoop() {
 
     const head = { x: snake[0].x + direction.x, y: snake[0].y + direction.y };
 
-    if (head.x < 0 || head.x >= GRID_SIZE || head.y < 0 || head.y >= GRID_SIZE) { gameOver(); return; }
+    if (head.x < 0 || head.x >= GRID_W || head.y < 0 || head.y >= GRID_H) { gameOver(); return; }
     for (let p of snake) if (head.x === p.x && head.y === p.y) { gameOver(); return; }
 
     gridState[head.x][head.y]++;
@@ -234,7 +278,7 @@ function gameLoop() {
         spawnFloatingText(head.x, head.y, `+${reward}`, isDarknessActive ? "#00ffcc" : "#fff");
 
         snakeHue = (snakeHue + 5) % 360; foodHue = (snakeHue + 180) % 360;
-        if (gameSpeed > 45) gameSpeed -= 1;
+        if (gameSpeed > 60) gameSpeed -= 1;
     } else if (goldenFood && head.x === goldenFood.x && head.y === goldenFood.y) {
         const reward = 5;
         score += reward; foodsEaten++; goldenFood = null; updateStatsUI(score);
@@ -244,7 +288,7 @@ function gameLoop() {
         audio.playEat(2);
         spawnParticles(head.x, head.y, 45);
         spawnFloatingText(head.x, head.y, "DARKNESS", "#ffd700");
-        gameSpeed = Math.max(40, gameSpeed - 5);
+        gameSpeed = Math.max(60, gameSpeed - 2);
     } else {
         snake.pop();
     }
@@ -461,8 +505,8 @@ function renderBoardBuffer() {
     boardCtx.fillStyle = '#020208'; // Deepest base
     boardCtx.fillRect(0, 0, boardCanvas.width, boardCanvas.height);
 
-    for (let x = 0; x < GRID_SIZE; x++) {
-        for (let y = 0; y < GRID_SIZE; y++) {
+    for (let x = 0; x < GRID_W; x++) {
+        for (let y = 0; y < GRID_H; y++) {
             const px = x * TILE_SIZE; const py = y * TILE_SIZE;
             const hitCount = Math.min(10, gridState[x][y]);
             const size = TILE_SIZE - 4;
@@ -528,10 +572,10 @@ function drawPauseOverlay() {
 }
 
 function spawnFood() {
-    let v = false; while (!v) { food = { x: Math.floor(Math.random() * GRID_SIZE), y: Math.floor(Math.random() * GRID_SIZE) }; v = true; for (let p of snake) if (p.x === food.x && p.y === food.y) v = false; }
+    let v = false; while (!v) { food = { x: Math.floor(Math.random() * GRID_W), y: Math.floor(Math.random() * GRID_H) }; v = true; for (let p of snake) if (p.x === food.x && p.y === food.y) v = false; }
 
     if (Math.random() < currentGoldenChance) {
-        goldenFood = { x: Math.floor(Math.random() * GRID_SIZE), y: Math.floor(Math.random() * GRID_SIZE) };
+        goldenFood = { x: Math.floor(Math.random() * GRID_W), y: Math.floor(Math.random() * GRID_H) };
         goldenFoodTimer = 5000; // 5 seconds lifespan
         currentGoldenChance = 0.05; // Reset to 5%
     } else {
