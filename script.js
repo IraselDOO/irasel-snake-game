@@ -1,4 +1,4 @@
-const VERSION = "v2.13.1 SHAPE SHIFT";
+const VERSION = "v2.14.0 SCORE HISTORY";
 const STATE_START = 'start';
 const STATE_PLAYING = 'playing';
 const STATE_DEAD = 'dead';
