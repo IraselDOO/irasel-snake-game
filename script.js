@@ -38,7 +38,13 @@ const elements = {
     schemeSelect: document.getElementById('controlScheme'),
     schemeSelectMobile: document.getElementById('controlSchemeMobile'),
     joystickBase: document.getElementById('joystickBase'),
-    joystickStick: document.getElementById('joystickStick')
+    joystickStick: document.getElementById('joystickStick'),
+    lastScore: document.getElementById('lastScore'),
+    avgScore: document.getElementById('avgScore'),
+    statsSummary: document.getElementById('statsSummary'),
+    leaderboardContainer: document.getElementById('leaderboardContainer'),
+    leaderboardBody: document.getElementById('leaderboardBody'),
+    startPrompt: document.getElementById('startPrompt')
 };
 
 // Constants
@@ -58,6 +64,8 @@ let direction = { x: 0, y: -1 };
 let inputQueue = [];
 let score = 0;
 let highScore = localStorage.getItem('snakeHighScore') || 0;
+const STORAGE_KEY_HISTORY = 'snakeScoreHistory';
+let scoreHistory = JSON.parse(localStorage.getItem(STORAGE_KEY_HISTORY) || '[]');
 let startTime = 0;
 let foodsEaten = 0;
 let isPaused = false;
@@ -745,11 +753,61 @@ function gameOver() {
     if (p) p.textContent = `Score: ${score} | Apples: ${foodsEaten} | Time: ${sessionDuration}s`;
     if (elements.startBtn) elements.startBtn.textContent = "REBOOT SYSTEM";
 
+    // Score History Management
+    saveScore(score);
+    updateGameOverUI(score);
+
     setTimeout(() => {
         if (gameState === STATE_DEAD && elements.startScreen) {
             elements.startScreen.classList.remove('hidden');
         }
-    }, 3000);
+    }, 1500); // Reduced delay for better feel
+}
+
+function saveScore(s) {
+    const entry = {
+        score: s,
+        date: new Date().toLocaleDateString(),
+        timestamp: Date.now()
+    };
+    scoreHistory.push(entry);
+    localStorage.setItem(STORAGE_KEY_HISTORY, JSON.stringify(scoreHistory));
+}
+
+function getAverageScore() {
+    if (scoreHistory.length === 0) return 0;
+    const total = scoreHistory.reduce((acc, curr) => acc + curr.score, 0);
+    return Math.round(total / scoreHistory.length);
+}
+
+function updateGameOverUI(currentScore) {
+    if (elements.lastScore) elements.lastScore.textContent = currentScore;
+    if (elements.avgScore) elements.avgScore.textContent = getAverageScore();
+    if (elements.statsSummary) elements.statsSummary.classList.remove('hidden');
+
+    // Update Leaderboard
+    if (elements.leaderboardBody) {
+        const topTen = [...scoreHistory]
+            .sort((a, b) => b.score - a.score)
+            .slice(0, 10);
+
+        elements.leaderboardBody.innerHTML = '';
+        topTen.forEach((entry, index) => {
+            const row = document.createElement('tr');
+            if (entry.score === currentScore && entry.timestamp >= Date.now() - 5000) {
+                row.classList.add('top-record');
+            }
+            row.innerHTML = `
+                <td>${index + 1}</td>
+                <td>${entry.score}</td>
+                <td>${entry.date}</td>
+            `;
+            elements.leaderboardBody.appendChild(row);
+        });
+        if (elements.leaderboardContainer) elements.leaderboardContainer.classList.remove('hidden');
+    }
+
+    if (elements.startPrompt) elements.startPrompt.classList.add('hidden');
 }
 
 function initMobileControls() {
@@ -899,7 +957,12 @@ document.getElementById('resetBestBtn').addEventListener('click', () => {
     if (confirm("Reset best score?")) {
         highScore = 0;
         localStorage.setItem('snakeHighScore', 0);
+        scoreHistory = [];
+        localStorage.setItem(STORAGE_KEY_HISTORY, JSON.stringify([]));
         updateStatsUI(score);
+        if (elements.statsSummary) elements.statsSummary.classList.add('hidden');
+        if (elements.leaderboardContainer) elements.leaderboardContainer.classList.add('hidden');
+        if (elements.startPrompt) elements.startPrompt.classList.remove('hidden');
     }
 });
 

@@ -104,7 +104,30 @@
                 <div id="startScreen" class="overlay">
                     <div class="version-overlay"></div>
                     <h1>NEON SNAKE</h1>
-                    <p>Press Space to Start</p>
+                    <div id="statsSummary" class="stats-summary hidden">
+                        <div class="summary-item">
+                            <span class="label">Last Score</span>
+                            <span id="lastScore" class="value">0</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="label">Average</span>
+                            <span id="avgScore" class="value">0</span>
+                        </div>
+                    </div>
+                    <div id="leaderboardContainer" class="leaderboard-container hidden">
+                        <h2>TOP 10 RECORDS</h2>
+                        <table id="leaderboardTable">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>SCORE</th>
+                                    <th>DATE</th>
+                                </tr>
+                            </thead>
+                            <tbody id="leaderboardBody"></tbody>
+                        </table>
+                    </div>
+                    <p id="startPrompt">Press Space to Start</p>
                     <button id="startBtn">PLAY</button>
                 </div>
             </div>
