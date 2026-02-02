@@ -341,6 +341,7 @@ function renderLoop(currentTime) {
     const dt = Math.min(100, currentTime - lastRenderTime);
     lastRenderTime = currentTime;
 
+    renderBoardBuffer(); // Redraw for pulsating background
     drawAmbientDust(dt);
     if (isPaused) { drawPauseOverlay(); return; }
 
@@ -566,7 +567,11 @@ function drawRoundedRect(x, y, w, h, r) {
 }
 
 function renderBoardBuffer() {
-    boardCtx.fillStyle = '#020208'; // Deepest base
+    // 1. DYNAMIC NEON BACKGROUND (Pulsating)
+    const time = performance.now() * 0.001;
+    const pulse = (Math.sin(time * 1.2) + 1) / 2; // Range 0 to 1
+    const bgBrightness = 1.5 + pulse * 6.5; // Oscillates between 1.5% and 8%
+    boardCtx.fillStyle = `hsl(180, 70%, ${bgBrightness}%)`;
     boardCtx.fillRect(0, 0, boardCanvas.width, boardCanvas.height);
 
     for (let x = 0; x < GRID_W; x++) {
@@ -579,10 +584,10 @@ function renderBoardBuffer() {
 
             if (hitCount === 0) {
                 // Convex Cell (Raised)
-                const d = 3; // Increased depth
+                const d = 3;
                 boardCtx.fillStyle = '#101030'; // Side
                 drawRoundedRectInCtx(boardCtx, px + 2, py + 2 + d, size, size, r); boardCtx.fill();
-                boardCtx.fillStyle = '#2a2a60'; // Top face (Brighter for contrast)
+                boardCtx.fillStyle = '#2a2a60'; // Top face
                 drawRoundedRectInCtx(boardCtx, px + 2, py + 2, size, size, r); boardCtx.fill();
 
                 // Subtle top edge highlight
@@ -590,7 +595,7 @@ function renderBoardBuffer() {
                 drawRoundedRectInCtx(boardCtx, px + 3, py + 3, size - 2, 2, 1); boardCtx.fill();
             } else {
                 // Concave Cell (Sunken)
-                const brightness = Math.max(2, 18 - (hitCount * 1.5));
+                const brightness = Math.max(2, 25 - (hitCount * 2.3));
                 const faceCol = `hsl(230, 30%, ${brightness}%)`;
                 const holeWallCol = '#050515';
                 const rimHighlightCol = `hsl(230, 30%, ${Math.min(100, brightness + 15)}%)`;
