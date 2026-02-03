@@ -1,4 +1,4 @@
-const VERSION = "v2.15.2 OPTIMIZED VISUALS";
+const VERSION = "v2.15.3 FLICKER FIX";
 const STATE_START = 'start';
 const STATE_PLAYING = 'playing';
 const STATE_DEAD = 'dead';
@@ -572,10 +572,20 @@ function renderBoardBuffer() {
     boardCtx.fillStyle = COLOR_BOARD_BG;
     boardCtx.fillRect(0, 0, boardCanvas.width, boardCanvas.height);
 
+    const head = snake[0];
+
     for (let x = 0; x < GRID_W; x++) {
         for (let y = 0; y < GRID_H; y++) {
             const px = x * TILE_SIZE; const py = y * TILE_SIZE;
-            const hitCount = Math.min(10, gridState[x][y]);
+
+            // DELAY LOGIC: If this tile is the current head, show it as unhit (or previous state)
+            // preventing the "hole" from appearing before the snake visually arrives.
+            let effectiveHitCount = gridState[x][y];
+            if (head && x === head.x && y === head.y && effectiveHitCount > 0) {
+                effectiveHitCount--;
+            }
+
+            const hitCount = Math.min(10, effectiveHitCount);
             const size = TILE_SIZE - 4;
             const r = 4;
             const center = px + TILE_SIZE / 2; const middle = py + TILE_SIZE / 2;
