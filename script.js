@@ -1,4 +1,4 @@
-const VERSION = "v2.15.0 NEW TILES";
+const VERSION = "v2.15.1 BRIGHTER TILES";
 const STATE_START = 'start';
 const STATE_PLAYING = 'playing';
 const STATE_DEAD = 'dead';
