@@ -456,7 +456,12 @@ function drawSnake(currentTime, dt) {
             const ps = prevSnake[i] || s;
             ix = ps.x + (s.x - ps.x) * moveProgress;
             iy = ps.y + (s.y - ps.y) * moveProgress;
-            if (i < snake.length - 1) {
+
+            if (i === 0 && inputQueue.length > 0) {
+                // PREDICTIVE TURN: Look at queued input immediately
+                const nextDir = inputQueue[0];
+                angle = Math.atan2(nextDir.y, nextDir.x);
+            } else if (i < snake.length - 1) {
                 const next = snake[i + 1];
                 angle = Math.atan2(s.y - next.y, s.x - next.x);
             }
@@ -584,10 +589,11 @@ function renderBoardBuffer() {
         for (let y = 0; y < GRID_H; y++) {
             const px = x * TILE_SIZE; const py = y * TILE_SIZE;
 
-            // DELAY LOGIC: If this tile is the current head, show it as unhit (or previous state)
-            // preventing the "hole" from appearing before the snake visually arrives.
+            // DELAY LOGIC: Keep tile convex under Head AND Neck to prevent visual "pop"
+            // The tile will only sink once the snake body (segment 2+) covers it.
             let effectiveHitCount = gridState[x][y];
-            if (head && x === head.x && y === head.y && effectiveHitCount > 0) {
+            const neck = snake.length > 1 ? snake[1] : null;
+            if (((head && x === head.x && y === head.y) || (neck && x === neck.x && y === neck.y)) && effectiveHitCount > 0) {
                 effectiveHitCount--;
             }
 
@@ -972,7 +978,7 @@ function handleInput(dirStr) {
         case 'Left': if (last.x === 0) inputQueue.push({ x: -1, y: 0 }); break;
         case 'Right': if (last.x === 0) inputQueue.push({ x: 1, y: 0 }); break;
     }
-    if (inputQueue.length > 3) inputQueue.shift();
+    if (inputQueue.length > 5) inputQueue.shift();
 }
 
 document.addEventListener('keydown', e => {
