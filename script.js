@@ -1,4 +1,4 @@
-const VERSION = "v2.15.1 BRIGHTER TILES";
+const VERSION = "v2.15.2 OPTIMIZED VISUALS";
 const STATE_START = 'start';
 const STATE_PLAYING = 'playing';
 const STATE_DEAD = 'dead';
@@ -341,7 +341,7 @@ function renderLoop(currentTime) {
     const dt = Math.min(100, currentTime - lastRenderTime);
     lastRenderTime = currentTime;
 
-    renderBoardBuffer(); // Redraw for pulsating background
+
     drawAmbientDust(dt);
     if (isPaused) { drawPauseOverlay(); return; }
 
@@ -473,7 +473,8 @@ function drawSnake(currentTime, dt) {
 
         ctx.globalAlpha = alpha;
         const shape = s.hasFood ? 'triangle' : 'cube';
-        drawBlockSmooth3D(ix, iy, snakeColors, isHead, sc, s.hasFood, angle, shape);
+        const eyeColor = isHead ? `hsl(${(snakeHue + 180) % 360}, 100%, 70%)` : '#fff';
+        drawBlockSmooth3D(ix, iy, snakeColors, isHead, sc, s.hasFood, angle, shape, eyeColor);
     }
     ctx.globalAlpha = 1;
 }
@@ -512,7 +513,7 @@ function drawDiamond3D(gx, gy, colors, pulse = false, scale = 1, shimmer = false
     }
 }
 
-function drawBlockSmooth3D(fx, fy, colors, head = false, scale = 1, shm = false, angle = 0, shape = 'cube') {
+function drawBlockSmooth3D(fx, fy, colors, head = false, scale = 1, shm = false, angle = 0, shape = 'cube', eyeColor = '#fff') {
     const size = (TILE_SIZE - 6) * scale;
     const x = fx * TILE_SIZE + TILE_SIZE / 2;
     const y = fy * TILE_SIZE + TILE_SIZE / 2;
@@ -541,7 +542,7 @@ function drawBlockSmooth3D(fx, fy, colors, head = false, scale = 1, shm = false,
     }
 
     if (head) {
-        ctx.shadowBlur = 10; ctx.shadowColor = '#fff'; ctx.fillStyle = '#fff'; ctx.beginPath();
+        ctx.shadowBlur = 10; ctx.shadowColor = eyeColor; ctx.fillStyle = eyeColor; ctx.beginPath();
         ctx.arc(size / 4, -size / 4, 3 * scale, 0, Math.PI * 2); ctx.arc(size / 4, size / 4, 3 * scale, 0, Math.PI * 2); ctx.fill();
     }
 
@@ -588,17 +589,17 @@ function renderBoardBuffer() {
 
                 // Top Face Gradient
                 const grad = boardCtx.createLinearGradient(px, py, px + size, py + size);
-                grad.addColorStop(0, '#3a3a75'); // Lighter top-left
-                grad.addColorStop(1, '#1e1e45'); // Darker bottom-right
+                grad.addColorStop(0, '#5a5aa0'); // Much lighter Top-Left
+                grad.addColorStop(1, '#323260'); // Lighter Bottom-Right
                 boardCtx.fillStyle = grad;
                 drawRoundedRectInCtx(boardCtx, px + 2, py + 2, size, size, r); boardCtx.fill();
 
                 // Top Edge Highlight (Soft Glint)
-                boardCtx.fillStyle = 'rgba(255, 255, 255, 0.08)';
+                boardCtx.fillStyle = 'rgba(255, 255, 255, 0.15)';
                 drawRoundedRectInCtx(boardCtx, px + 2, py + 2, size, size / 2, r); boardCtx.fill();
             } else {
                 // Concave Cell (Sunken) - Enhanced
-                const brightness = Math.max(5, 22 - (hitCount * 1.5));
+                const brightness = Math.max(10, 50 - (hitCount * 4));
 
                 // 1. Wall/Shadow (Darkest)
                 boardCtx.fillStyle = '#020205';
