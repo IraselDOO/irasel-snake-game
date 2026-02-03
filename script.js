@@ -1,4 +1,4 @@
-const VERSION = "v2.14.3 STATIC BG";
+const VERSION = "v2.15.0 NEW TILES";
 const STATE_START = 'start';
 const STATE_PLAYING = 'playing';
 const STATE_DEAD = 'dead';
@@ -580,34 +580,40 @@ function renderBoardBuffer() {
             const center = px + TILE_SIZE / 2; const middle = py + TILE_SIZE / 2;
 
             if (hitCount === 0) {
-                // Convex Cell (Raised)
+                // Convex Cell (Raised) - Enhanced
                 const d = 3;
-                boardCtx.fillStyle = '#101030'; // Side
+                // Side Shadow (Volume)
+                boardCtx.fillStyle = '#0a0a20';
                 drawRoundedRectInCtx(boardCtx, px + 2, py + 2 + d, size, size, r); boardCtx.fill();
-                boardCtx.fillStyle = '#2a2a60'; // Top face
+
+                // Top Face Gradient
+                const grad = boardCtx.createLinearGradient(px, py, px + size, py + size);
+                grad.addColorStop(0, '#3a3a75'); // Lighter top-left
+                grad.addColorStop(1, '#1e1e45'); // Darker bottom-right
+                boardCtx.fillStyle = grad;
                 drawRoundedRectInCtx(boardCtx, px + 2, py + 2, size, size, r); boardCtx.fill();
 
-                // Subtle top edge highlight
-                boardCtx.fillStyle = '#3a3a80';
-                drawRoundedRectInCtx(boardCtx, px + 3, py + 3, size - 2, 2, 1); boardCtx.fill();
+                // Top Edge Highlight (Soft Glint)
+                boardCtx.fillStyle = 'rgba(255, 255, 255, 0.08)';
+                drawRoundedRectInCtx(boardCtx, px + 2, py + 2, size, size / 2, r); boardCtx.fill();
             } else {
-                // Concave Cell (Sunken)
-                const brightness = Math.max(2, 25 - (hitCount * 2.3));
-                const faceCol = `hsl(230, 30%, ${brightness}%)`;
-                const holeWallCol = '#050515';
-                const rimHighlightCol = `hsl(230, 30%, ${Math.min(100, brightness + 15)}%)`;
+                // Concave Cell (Sunken) - Enhanced
+                const brightness = Math.max(5, 22 - (hitCount * 1.5));
 
-                // 1. Draw the "hole" area (darkest)
-                boardCtx.fillStyle = holeWallCol;
+                // 1. Wall/Shadow (Darkest)
+                boardCtx.fillStyle = '#020205';
                 drawRoundedRectInCtx(boardCtx, px + 2, py + 2, size, size, r); boardCtx.fill();
 
-                // 2. Draw the "floor" of the hole (sunken and shifted)
-                boardCtx.fillStyle = faceCol;
-                drawRoundedRectInCtx(boardCtx, px + 2, py + 4.5, size, size - 2.5, r); boardCtx.fill();
+                // 2. Floor with Inner Shadow Gradient
+                const floorGrad = boardCtx.createLinearGradient(px, py, px, py + size);
+                floorGrad.addColorStop(0, `hsl(230, 25%, ${brightness * 0.4}%)`); // Deep shadow at top
+                floorGrad.addColorStop(1, `hsl(230, 25%, ${brightness}%)`);       // Liter at bottom
+                boardCtx.fillStyle = floorGrad;
+                drawRoundedRectInCtx(boardCtx, px + 2, py + 5, size, size - 3, r); boardCtx.fill();
 
-                // 3. Rim highlight at the very bottom edge to show the lip of the hole
-                boardCtx.fillStyle = rimHighlightCol;
-                boardCtx.fillRect(px + 4, py + 2 + size - 1, size - 4, 1.5);
+                // 3. Rim Highlight (Crisp "Step" Edge)
+                boardCtx.fillStyle = `hsl(200, 40%, ${20 + brightness}%)`;
+                boardCtx.fillRect(px + 4, py + size, size - 4, 1.5);
             }
 
             if (scarState[x][y]) {
