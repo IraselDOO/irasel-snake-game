@@ -1,4 +1,4 @@
-const VERSION = "v2.14.2 REVERTED PULSE";
+const VERSION = "v2.14.3 STATIC BG";
 const STATE_START = 'start';
 const STATE_PLAYING = 'playing';
 const STATE_DEAD = 'dead';
@@ -567,11 +567,8 @@ function drawRoundedRect(x, y, w, h, r) {
 }
 
 function renderBoardBuffer() {
-    // 1. DYNAMIC NEON BACKGROUND (Pulsating)
-    const time = performance.now() * 0.001;
-    const pulse = (Math.sin(time * 1.2) + 1) / 2; // Range 0 to 1
-    const bgBrightness = 1.5 + pulse * 6.5; // Oscillates between 1.5% and 8%
-    boardCtx.fillStyle = `hsl(180, 70%, ${bgBrightness}%)`;
+    // 1. STATIC BACKGROUND
+    boardCtx.fillStyle = COLOR_BOARD_BG;
     boardCtx.fillRect(0, 0, boardCanvas.width, boardCanvas.height);
 
     for (let x = 0; x < GRID_W; x++) {
