@@ -1,4 +1,4 @@
-const VERSION = "v2.16.0 EXPLOSIVE DEATH";
+const VERSION = "v2.16.0 KINETIC POLISH";
 const STATE_START = 'start';
 const STATE_PLAYING = 'playing';
 const STATE_DEAD = 'dead';
