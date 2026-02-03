@@ -1,4 +1,4 @@
-const VERSION = "v2.15.3 FLICKER FIX";
+const VERSION = "v2.15.4 DIMMED TILES";
 const STATE_START = 'start';
 const STATE_PLAYING = 'playing';
 const STATE_DEAD = 'dead';
@@ -599,17 +599,17 @@ function renderBoardBuffer() {
 
                 // Top Face Gradient
                 const grad = boardCtx.createLinearGradient(px, py, px + size, py + size);
-                grad.addColorStop(0, '#5a5aa0'); // Much lighter Top-Left
-                grad.addColorStop(1, '#323260'); // Lighter Bottom-Right
+                grad.addColorStop(0, '#444485'); // Dimmed Top-Left (was #5a5aa0)
+                grad.addColorStop(1, '#222250'); // Dimmed Bottom-Right (was #323260)
                 boardCtx.fillStyle = grad;
                 drawRoundedRectInCtx(boardCtx, px + 2, py + 2, size, size, r); boardCtx.fill();
 
                 // Top Edge Highlight (Soft Glint)
-                boardCtx.fillStyle = 'rgba(255, 255, 255, 0.15)';
+                boardCtx.fillStyle = 'rgba(255, 255, 255, 0.10)';
                 drawRoundedRectInCtx(boardCtx, px + 2, py + 2, size, size / 2, r); boardCtx.fill();
             } else {
                 // Concave Cell (Sunken) - Enhanced
-                const brightness = Math.max(10, 50 - (hitCount * 4));
+                const brightness = Math.max(8, 40 - (hitCount * 4)); // Reduced max brightness (was 50)
 
                 // 1. Wall/Shadow (Darkest)
                 boardCtx.fillStyle = '#020205';
