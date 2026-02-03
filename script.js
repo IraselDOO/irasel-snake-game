@@ -1,4 +1,4 @@
-const VERSION = "v2.15.5 ADJUSTED DIMMING";
+const VERSION = "v2.16.0 EXPLOSIVE DEATH";
 const STATE_START = 'start';
 const STATE_PLAYING = 'playing';
 const STATE_DEAD = 'dead';
@@ -378,7 +378,12 @@ function renderLoop(currentTime) {
     ctx.translate(dx, dy);
 
     if (glitchTimer > 0) {
-        ctx.filter = `url(#chromatic) hue-rotate(${Math.random() * 360}deg)`;
+        // Removed heavy SVG filter for performance
+        // ctx.filter = `url(#chromatic) hue-rotate(${Math.random() * 360}deg)`;
+
+        // Simple shake instead
+        dx += (Math.random() - 0.5) * 10;
+        dy += (Math.random() - 0.5) * 10;
         glitchTimer -= dt;
     }
 
@@ -444,8 +449,9 @@ function drawSnake(currentTime, dt) {
 
         if (gameState === STATE_DEAD) {
             ix = s.x; iy = s.y; alpha = Math.max(0, s.life);
-            s.x += s.vx; s.y += s.vy; s.vy += 0.02; // Gravity
-            s.life -= 0.01;
+            s.x += s.vx; s.y += s.vy;
+            s.vy += 0.05; // Heavier gravity (was 0.02)
+            s.life -= 0.015; // Fade slightly faster
         } else {
             const ps = prevSnake[i] || s;
             ix = ps.x + (s.x - ps.x) * moveProgress;
@@ -751,7 +757,10 @@ function gameOver() {
 
     // PHYSICAL DISINTEGRATION: Capture body segments
     dyingSnake = snake.map((s, i) => ({
-        x: s.x, y: s.y, vx: (Math.random() - 0.5) * 0.3, vy: (Math.random() - 0.5) * 0.3,
+        x: s.x, y: s.y,
+        // More explosive power: 0.3 -> 0.8
+        vx: (Math.random() - 0.5) * 0.8,
+        vy: (Math.random() - 0.5) * 0.8 - 0.5, // Initial upward pop
         life: 1.0 + Math.random() * 0.5, hasFood: s.hasFood, angle: (Math.random() * 0.2)
     }));
 
