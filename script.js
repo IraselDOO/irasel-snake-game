@@ -1,4 +1,4 @@
-const VERSION = "v2.14.0 SCORE HISTORY";
+const VERSION = "v2.14.1 BRIGHTER PULSE";
 const STATE_START = 'start';
 const STATE_PLAYING = 'playing';
 const STATE_DEAD = 'dead';
@@ -570,7 +570,7 @@ function renderBoardBuffer() {
     // 1. DYNAMIC NEON BACKGROUND (Pulsating)
     const time = performance.now() * 0.001;
     const pulse = (Math.sin(time * 1.2) + 1) / 2; // Range 0 to 1
-    const bgBrightness = 1.5 + pulse * 6.5; // Oscillates between 1.5% and 8%
+    const bgBrightness = 5 + pulse * 20; // Oscillates between 5% and 25%
     boardCtx.fillStyle = `hsl(180, 70%, ${bgBrightness}%)`;
     boardCtx.fillRect(0, 0, boardCanvas.width, boardCanvas.height);
 
