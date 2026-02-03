@@ -1,4 +1,4 @@
-const VERSION = "v2.15.4 DIMMED TILES";
+const VERSION = "v2.15.5 ADJUSTED DIMMING";
 const STATE_START = 'start';
 const STATE_PLAYING = 'playing';
 const STATE_DEAD = 'dead';
@@ -609,7 +609,7 @@ function renderBoardBuffer() {
                 drawRoundedRectInCtx(boardCtx, px + 2, py + 2, size, size / 2, r); boardCtx.fill();
             } else {
                 // Concave Cell (Sunken) - Enhanced
-                const brightness = Math.max(8, 40 - (hitCount * 4)); // Reduced max brightness (was 50)
+                const brightness = Math.max(8, 35 - (hitCount * 4)); // Reduced max brightness (was 40)
 
                 // 1. Wall/Shadow (Darkest)
                 boardCtx.fillStyle = '#020205';
