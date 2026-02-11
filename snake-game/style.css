@@ -121,6 +121,30 @@ canvas {
     text-shadow: 0 0 10px var(--accent-glow);
 }
 
+.version-info {
+    margin-top: auto;
+    padding-top: 8px;
+    border-top: 1px solid var(--glass-border);
+}
+
+.version-info .value {
+    font-size: 18px;
+}
+
+.delta-up {
+    color: #33ff88;
+    text-shadow: 0 0 10px rgba(51, 255, 136, 0.6);
+}
+
+.delta-down {
+    color: #ff4d6d;
+    text-shadow: 0 0 10px rgba(255, 77, 109, 0.6);
+}
+
+.delta-neutral {
+    color: var(--accent-color);
+}
+
 /* Progress Bar */
 .stat-bar-container {
     background: rgba(0, 0, 0, 0.3);
@@ -178,6 +202,37 @@ h1 {
     background-clip: text;
     -webkit-text-fill-color: transparent;
     filter: drop_shadow(0 0 10px rgba(0, 255, 204, 0.5));
+}
+
+#startHint {
+    margin: 6px 0 0;
+    color: var(--text-dim);
+}
+
+.death-stats {
+    display: none;
+    gap: 16px;
+    margin-top: 14px;
+    align-items: flex-start;
+}
+
+.death-stats.visible {
+    display: flex;
+}
+
+.death-stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.death-stat .label {
+    letter-spacing: 1px;
+    margin-bottom: 2px;
+}
+
+.death-stat .value {
+    font-size: 22px;
 }
 
 /* Mobile Controls & Settings */

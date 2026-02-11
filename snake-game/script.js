@@ -25,6 +25,13 @@ const progressFill = document.getElementById('progressFill');
 const ratioText = document.getElementById('ratioText');
 const efficiencyEl = document.getElementById('efficiency');
 const sessionTimeEl = document.getElementById('sessionTime');
+const currentAvgDeltaEl = document.getElementById('currentAvgDelta');
+const startHintEl = document.getElementById('startHint');
+const deathStatsEl = document.getElementById('deathStats');
+const deathLastScoreEl = document.getElementById('deathLastScore');
+const deathAverageEl = document.getElementById('deathAverage');
+const deathAvgDeltaEl = document.getElementById('deathAvgDelta');
+const appVersionEl = document.getElementById('appVersion');
 
 // Constants
 const GRID_SIZE = 24;
@@ -33,6 +40,11 @@ const DEPTH = TILE_SIZE * 0.15;
 const COLOR_BOARD_BG = '#050510';
 const COLOR_SCAR_MARK = 'rgba(0, 255, 204, 0.5)';
 const COLOR_BORDER = '#00ffcc';
+const APP_VERSION = '2.17.0';
+const APP_RELEASE_NAME = 'AVERAGE INSIGHTS';
+const STORAGE_HIGH_SCORE_KEY = 'snakeHighScore';
+const STORAGE_GAMES_PLAYED_KEY = 'snakeGamesPlayed';
+const STORAGE_TOTAL_SCORE_KEY = 'snakeTotalScore';
 
 // State
 let snake = [];
@@ -42,7 +54,11 @@ let goldenFood = null;
 let direction = { x: 0, y: -1 };
 let inputQueue = [];
 let score = 0;
-let highScore = localStorage.getItem('snakeHighScore') || 0;
+let highScore = readStoredNumber(STORAGE_HIGH_SCORE_KEY);
+const averageStats = loadAverageStats();
+let gamesPlayed = averageStats.gamesPlayed;
+let totalScore = averageStats.totalScore;
+let averageScore = averageStats.averageScore;
 let startTime = 0;
 let foodsEaten = 0;
 let isPaused = false;
@@ -101,9 +117,48 @@ class AudioSystem {
 }
 const audio = new AudioSystem();
 
+function readStoredNumber(key) {
+    const value = Number(localStorage.getItem(key));
+    return Number.isFinite(value) && value > 0 ? value : 0;
+}
+
+function loadAverageStats() {
+    const games = Math.floor(readStoredNumber(STORAGE_GAMES_PLAYED_KEY));
+    const total = readStoredNumber(STORAGE_TOTAL_SCORE_KEY);
+    const safeGames = Math.max(0, games);
+    const safeTotal = Math.max(0, total);
+    return {
+        gamesPlayed: safeGames,
+        totalScore: safeTotal,
+        averageScore: safeGames > 0 ? safeTotal / safeGames : 0
+    };
+}
+
+function saveAverageStats() {
+    localStorage.setItem(STORAGE_GAMES_PLAYED_KEY, String(gamesPlayed));
+    localStorage.setItem(STORAGE_TOTAL_SCORE_KEY, String(totalScore));
+}
+
+function setDeltaIndicator(element, delta) {
+    element.classList.remove('delta-up', 'delta-down', 'delta-neutral');
+    if (delta > 0.0001) {
+        element.classList.add('delta-up');
+        element.textContent = `\u2191 ${Math.abs(delta).toFixed(2)}`;
+        return;
+    }
+    if (delta < -0.0001) {
+        element.classList.add('delta-down');
+        element.textContent = `\u2193 ${Math.abs(delta).toFixed(2)}`;
+        return;
+    }
+    element.classList.add('delta-neutral');
+    element.textContent = '0.00';
+}
+
 function init() {
     window.addEventListener('resize', resizeAmbient);
     resizeAmbient();
+    if (appVersionEl) appVersionEl.textContent = `v${APP_VERSION}: ${APP_RELEASE_NAME}`;
     initGridState();
     updateStatsUI(0);
     renderBoardBuffer();
@@ -165,6 +220,8 @@ function startGame() {
     initGridState();
     renderBoardBuffer();
 
+    deathStatsEl.classList.remove('visible');
+    startHintEl.textContent = 'Press Space to Start';
     startScreen.classList.add('hidden');
     gameState = STATE_PLAYING;
     isPaused = false;
@@ -550,10 +607,15 @@ function renderFloatingTexts(dt) {
 function updateStatsUI(s) {
     scoreEl.textContent = s; bestScoreEl.textContent = highScore;
     const r = highScore > 0 ? Math.min(100, Math.round((s / highScore) * 100)) : 0;
+    const currentDeltaFromAvg = gamesPlayed > 0 ? s - averageScore : 0;
+    setDeltaIndicator(currentAvgDeltaEl, currentDeltaFromAvg);
     progressFill.style.width = r + '%'; ratioText.textContent = `${r}% of Best`;
     if (foodsEaten > 0) {
         const el = (Date.now() - startTime) / 1000; efficiencyEl.textContent = (el / foodsEaten).toFixed(1) + 's/f';
         sessionTimeEl.textContent = Math.floor(el) + 's';
+    } else {
+        efficiencyEl.textContent = '0s';
+        sessionTimeEl.textContent = '0s';
     }
 }
 
@@ -567,10 +629,23 @@ function gameOver() {
         life: 1.0 + Math.random() * 0.5, hasFood: s.hasFood, angle: (Math.random() * 0.2)
     }));
 
+    const prevAverage = averageScore;
+    gamesPlayed += 1;
+    totalScore += score;
+    averageScore = gamesPlayed > 0 ? totalScore / gamesPlayed : 0;
+    saveAverageStats();
+
     for (let s of snake) spawnParticles(s.x, s.y, snakeHue, 20);
-    if (score > highScore) { highScore = score; localStorage.setItem('snakeHighScore', highScore); startScreen.querySelector('h1').textContent = "NEW RECORD!"; }
+    if (score > highScore) { highScore = score; localStorage.setItem(STORAGE_HIGH_SCORE_KEY, highScore); startScreen.querySelector('h1').textContent = "NEW RECORD!"; }
     else startScreen.querySelector('h1').textContent = "GAME OVER";
-    startScreen.querySelector('p').textContent = `Score: ${score} | Time: ${Math.floor((Date.now() - startTime) / 1000)}s`;
+
+    deathLastScoreEl.textContent = String(score);
+    deathAverageEl.textContent = averageScore.toFixed(2);
+    setDeltaIndicator(deathAvgDeltaEl, averageScore - prevAverage);
+    deathStatsEl.classList.add('visible');
+    startHintEl.textContent = `Time: ${Math.floor((Date.now() - startTime) / 1000)}s`;
+
+    updateStatsUI(score);
     startBtn.textContent = "REBOOT SYSTEM";
     setTimeout(() => { if (gameState === STATE_DEAD) startScreen.classList.remove('hidden'); }, 3000);
 }
@@ -682,7 +757,7 @@ document.addEventListener('keydown', e => {
 document.getElementById('resetBestBtn').addEventListener('click', () => {
     if (confirm("Reset best score?")) {
         highScore = 0;
-        localStorage.setItem('snakeHighScore', 0);
+        localStorage.setItem(STORAGE_HIGH_SCORE_KEY, 0);
         updateStatsUI(score);
     }
 });

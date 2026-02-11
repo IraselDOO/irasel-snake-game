@@ -1,4 +1,4 @@
-const VERSION = "v2.16.0 KINETIC POLISH";
+const VERSION = "v2.17.0 AVERAGE INSIGHTS";
 const STATE_START = 'start';
 const STATE_PLAYING = 'playing';
 const STATE_DEAD = 'dead';
@@ -26,6 +26,7 @@ const elements = {
     mApples: document.getElementById('m-apples'),
     best: document.getElementById('bestScore'),
     mBest: document.getElementById('m-best'),
+    mCurrentDelta: document.getElementById('m-currentDelta'),
     progress: document.getElementById('progressFill'),
     ratio: document.getElementById('ratioText'),
     efficiency: document.getElementById('efficiency'),
@@ -41,6 +42,7 @@ const elements = {
     joystickStick: document.getElementById('joystickStick'),
     lastScore: document.getElementById('lastScore'),
     avgScore: document.getElementById('avgScore'),
+    avgDelta: document.getElementById('avgDelta'),
     statsSummary: document.getElementById('statsSummary'),
     leaderboardContainer: document.getElementById('leaderboardContainer'),
     leaderboardBody: document.getElementById('leaderboardBody'),
@@ -749,6 +751,9 @@ function updateStatsUI(s) {
     if (elements.progress) elements.progress.style.width = ratio + '%';
     if (elements.ratio) elements.ratio.innerText = ratio + '% of Best';
 
+    const currentDelta = getProjectedAverageDelta(s);
+    applyDeltaIndicator(elements.mCurrentDelta, currentDelta);
+
     if (elements.efficiency) {
         elements.efficiency.innerText = foodsEaten > 0 ? ((performance.now() - startTime) / (foodsEaten * 1000)).toFixed(1) + 's' : '0s';
     }
@@ -788,8 +793,10 @@ function gameOver() {
     if (elements.startBtn) elements.startBtn.textContent = "REBOOT SYSTEM";
 
     // Score History Management
+    const averageBefore = getAverageScorePrecise();
     saveScore(score);
-    updateGameOverUI(score);
+    const averageAfter = getAverageScorePrecise();
+    updateGameOverUI(score, averageAfter, averageAfter - averageBefore);
 
     setTimeout(() => {
         if (gameState === STATE_DEAD && elements.startScreen) {
@@ -808,15 +815,45 @@ function saveScore(s) {
     localStorage.setItem(STORAGE_KEY_HISTORY, JSON.stringify(scoreHistory));
 }
 
-function getAverageScore() {
-    if (scoreHistory.length === 0) return 0;
-    const total = scoreHistory.reduce((acc, curr) => acc + curr.score, 0);
-    return Math.round(total / scoreHistory.length);
+function getAverageScorePrecise(scores = scoreHistory) {
+    if (!scores || scores.length === 0) return 0;
+    const total = scores.reduce((acc, curr) => acc + curr.score, 0);
+    return total / scores.length;
 }
 
-function updateGameOverUI(currentScore) {
+function getProjectedAverageDelta(currentScore) {
+    const gamesCount = scoreHistory.length;
+    const averageBefore = getAverageScorePrecise();
+    const projectedAverage = gamesCount > 0
+        ? ((averageBefore * gamesCount) + currentScore) / (gamesCount + 1)
+        : currentScore;
+    return projectedAverage - averageBefore;
+}
+
+function applyDeltaIndicator(el, delta) {
+    if (!el) return;
+    const epsilon = 0.0001;
+    const abs = Math.abs(delta).toFixed(2);
+    el.classList.remove('delta-up', 'delta-down', 'delta-neutral');
+
+    if (delta > epsilon) {
+        el.classList.add('delta-up');
+        el.textContent = `\u2191${abs}`;
+        return;
+    }
+    if (delta < -epsilon) {
+        el.classList.add('delta-down');
+        el.textContent = `\u2193${abs}`;
+        return;
+    }
+    el.classList.add('delta-neutral');
+    el.textContent = '0.00';
+}
+
+function updateGameOverUI(currentScore, averageAfter, averageDelta) {
     if (elements.lastScore) elements.lastScore.textContent = currentScore;
-    if (elements.avgScore) elements.avgScore.textContent = getAverageScore();
+    if (elements.avgScore) elements.avgScore.textContent = averageAfter.toFixed(2);
+    applyDeltaIndicator(elements.avgDelta, averageDelta);
     if (elements.statsSummary) elements.statsSummary.classList.remove('hidden');
 
     // Update Leaderboard

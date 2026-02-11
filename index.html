@@ -18,7 +18,7 @@
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js?v=2.16.0');
+                navigator.serviceWorker.register('./sw.js?v=2.17.0');
             });
         }
     </script>
@@ -51,6 +51,7 @@
             <div class="m-stat"><span>S:</span><span id="m-score">0</span></div>
             <div class="m-stat"><span>🍎:</span><span id="m-apples">0</span></div>
             <div class="m-stat"><span>B:</span><span id="m-best">0</span></div>
+            <div class="m-stat m-delta-stat"><span>Δ:</span><span id="m-currentDelta" class="delta-neutral">0.00</span></div>
             <select id="controlSchemeMobile" class="m-select">
                 <option value="split" selected>Buttons</option>
                 <option value="swipe">Swipe</option>
@@ -111,7 +112,11 @@
                         </div>
                         <div class="summary-item">
                             <span class="label">Average</span>
-                            <span id="avgScore" class="value">0</span>
+                            <span id="avgScore" class="value">0.00</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="label">Avg Delta</span>
+                            <span id="avgDelta" class="value delta-neutral">0.00</span>
                         </div>
                     </div>
                     <div id="leaderboardContainer" class="leaderboard-container hidden">
