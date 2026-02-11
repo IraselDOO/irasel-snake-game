@@ -27,7 +27,7 @@
                 });
 
                 try {
-                    const reg = await navigator.serviceWorker.register('./sw.js?v=2.17.1');
+                    const reg = await navigator.serviceWorker.register('./sw.js?v=2.17.2');
                     await reg.update();
 
                     const activateUpdate = () => {

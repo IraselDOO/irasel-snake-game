@@ -1,4 +1,4 @@
-const VERSION = "v2.17.1 AVERAGE INSIGHTS";
+const VERSION = "v2.17.2 AVERAGE INSIGHTS";
 const STATE_START = 'start';
 const STATE_PLAYING = 'playing';
 const STATE_DEAD = 'dead';

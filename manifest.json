@@ -1,7 +1,7 @@
 {
   "name": "Neon Snake 3D Pro",
   "short_name": "NeonSnake",
-  "version": "2.17.1",
+  "version": "2.17.2",
   "description": "Premium 3D Snake Game with Neon Aesthetics",
   "start_url": "index.html",
   "display": "standalone",
