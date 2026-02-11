@@ -1,4 +1,4 @@
-const VERSION = "v2.17.0 AVERAGE INSIGHTS";
+const VERSION = "v2.17.1 AVERAGE INSIGHTS";
 const STATE_START = 'start';
 const STATE_PLAYING = 'playing';
 const STATE_DEAD = 'dead';
@@ -46,7 +46,9 @@ const elements = {
     statsSummary: document.getElementById('statsSummary'),
     leaderboardContainer: document.getElementById('leaderboardContainer'),
     leaderboardBody: document.getElementById('leaderboardBody'),
-    startPrompt: document.getElementById('startPrompt')
+    startPrompt: document.getElementById('startPrompt'),
+    resetBestBtn: document.getElementById('resetBestBtn'),
+    resetStatsBtnOverlay: document.getElementById('resetStatsBtnOverlay')
 };
 
 // Constants
@@ -999,12 +1001,6 @@ function initMobileControls() {
         }, { passive: false });
     });
 
-    // Mobile Reset Sync
-    document.getElementById('resetBestBtnMobile').addEventListener('click', () => {
-        if (confirm("Reset best score?")) {
-            highScore = 0; localStorage.setItem('snakeHighScore', 0); updateStatsUI(score);
-        }
-    });
 }
 
 function handleInput(dirStr) {
@@ -1024,7 +1020,7 @@ document.addEventListener('keydown', e => {
     handleInput(e.code.replace('Arrow', ''));
 });
 
-document.getElementById('resetBestBtn').addEventListener('click', () => {
+function resetAllStats() {
     if (confirm("Reset best score?")) {
         highScore = 0;
         localStorage.setItem('snakeHighScore', 0);
@@ -1035,7 +1031,10 @@ document.getElementById('resetBestBtn').addEventListener('click', () => {
         if (elements.leaderboardContainer) elements.leaderboardContainer.classList.add('hidden');
         if (elements.startPrompt) elements.startPrompt.classList.remove('hidden');
     }
-});
+}
+
+if (elements.resetBestBtn) elements.resetBestBtn.addEventListener('click', resetAllStats);
+if (elements.resetStatsBtnOverlay) elements.resetStatsBtnOverlay.addEventListener('click', resetAllStats);
 
 if (elements.startBtn) elements.startBtn.addEventListener('click', startGame);
 init();

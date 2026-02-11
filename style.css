@@ -152,8 +152,8 @@ canvas#gameCanvas {
 }
 
 .delta-up {
-    color: #33ff88;
-    text-shadow: 0 0 8px rgba(51, 255, 136, 0.45);
+    color: var(--accent-color);
+    text-shadow: 0 0 8px var(--accent-glow);
 }
 
 .delta-down {
@@ -257,8 +257,8 @@ h1 {
         max-width: var(--game-width);
         height: 4svh;
         justify-content: space-between;
-        gap: 4px;
-        padding: 0 4px;
+        gap: 3px;
+        padding: 0 3px;
         margin: 0 auto;
         box-sizing: border-box;
         background: var(--panel-bg);
@@ -274,7 +274,7 @@ h1 {
         align-items: center;
         flex-shrink: 0;
         min-width: 0;
-        font-size: 11px;
+        font-size: 13px;
         color: var(--text-dim);
     }
 
@@ -285,16 +285,16 @@ h1 {
     }
 
     .m-delta-stat {
-        font-size: 10px;
+        font-size: 12px;
     }
 
     .m-delta-stat span:last-child {
         letter-spacing: 0;
-        font-size: 10px;
+        font-size: 12px;
     }
 
     .m-stat span.delta-up {
-        color: #33ff88;
+        color: var(--accent-color);
     }
 
     .m-stat span.delta-down {
@@ -305,23 +305,10 @@ h1 {
         background: #111;
         color: var(--accent-color);
         border: 1px solid var(--accent-color);
-        max-width: 78px;
+        max-width: 86px;
         padding: 1px 3px;
         border-radius: 4px;
-        font-size: 10px;
-    }
-
-    .m-reset {
-        background: transparent;
-        border: 1px solid #ff4444;
-        color: #ff4444;
-        width: 24px;
-        height: 24px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 14px;
+        font-size: 11px;
     }
 
     .canvas-container {
@@ -477,6 +464,22 @@ h1 {
     color: #000;
 }
 
+.overlay-reset-btn {
+    margin-top: 8px;
+    background: transparent;
+    color: #ff6b6b;
+    border: 1px solid rgba(255, 107, 107, 0.7);
+    padding: 6px 12px;
+    font-size: 11px;
+    letter-spacing: 1px;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.overlay-reset-btn:hover {
+    background: rgba(255, 107, 107, 0.15);
+}
+
 /* Game Over Leaderboard Styles */
 .stats-summary {
     display: flex;
@@ -509,7 +512,7 @@ h1 {
 }
 
 .summary-item .value.delta-up {
-    color: #33ff88;
+    color: var(--accent-color);
 }
 
 .summary-item .value.delta-down {

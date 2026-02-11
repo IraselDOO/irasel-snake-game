@@ -1,4 +1,4 @@
-const CACHE_NAME = 'neon-snake-v2.17.0'; // Updated to match game version
+const CACHE_NAME = 'neon-snake-v2.17.1'; // Updated to match game version
 const ASSETS = [
     './',
     'index.html',
@@ -20,6 +20,12 @@ self.addEventListener('install', event => {
             );
         })
     );
+});
+
+self.addEventListener('message', event => {
+    if (event.data && event.data.type === 'SKIP_WAITING') {
+        self.skipWaiting();
+    }
 });
 
 self.addEventListener('activate', event => {
