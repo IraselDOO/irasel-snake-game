@@ -274,7 +274,7 @@ h1 {
         align-items: center;
         flex-shrink: 0;
         min-width: 0;
-        font-size: 13px;
+        font-size: 14px;
         color: var(--text-dim);
     }
 
@@ -285,12 +285,12 @@ h1 {
     }
 
     .m-delta-stat {
-        font-size: 12px;
+        font-size: 13px;
     }
 
     .m-delta-stat span:last-child {
         letter-spacing: 0;
-        font-size: 12px;
+        font-size: 13px;
     }
 
     .m-stat span.delta-up {
