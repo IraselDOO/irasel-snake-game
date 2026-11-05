@@ -290,6 +290,14 @@ h1 {
         margin-left: 2px;
     }
 
+    .m-crystal-icon {
+        width: 13px;
+        height: 13px;
+        filter: drop-shadow(0 0 5px rgba(255, 42, 133, 0.8));
+        margin-right: 1px;
+        flex-shrink: 0;
+    }
+
     .m-delta-stat {
         font-size: 13px;
     }
@@ -308,26 +316,32 @@ h1 {
     }
 
     .m-select {
-        background: #111;
+        appearance: none;
+        -webkit-appearance: none;
+        background: rgba(10, 20, 30, 0.9) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='5' viewBox='0 0 8 5'%3E%3Cpath fill='%2300ffcc' d='M0 0l4 5 4-5z'/%3E%3C/svg%3E") no-repeat right 5px center;
         color: var(--accent-color);
-        border: 1px solid var(--accent-color);
+        border: 1px solid rgba(0, 255, 204, 0.55);
         max-width: 82px;
-        padding: 1px 3px;
-        border-radius: 4px;
-        font-size: 11px;
+        padding: 2px 15px 2px 5px;
+        border-radius: 6px;
+        font-family: inherit;
+        font-size: 10px;
+        letter-spacing: 0.5px;
+        box-shadow: 0 0 8px rgba(0, 255, 204, 0.15);
     }
 
     .m-pause-btn {
-        background: #111;
+        background: rgba(10, 20, 30, 0.9);
         color: var(--accent-color);
-        border: 1px solid var(--accent-color);
-        border-radius: 4px;
-        padding: 0 6px;
+        border: 1px solid rgba(0, 255, 204, 0.55);
+        border-radius: 6px;
+        padding: 0 7px;
         height: 22px;
         font-size: 11px;
         line-height: 1;
         cursor: pointer;
         flex-shrink: 0;
+        box-shadow: 0 0 8px rgba(0, 255, 204, 0.15);
     }
 
     .canvas-container {
@@ -393,22 +407,27 @@ h1 {
         width: 100%;
         height: 8svh;
         border-radius: 12px;
-        border: 2px solid #00ffcc;
-        background: linear-gradient(160deg, rgba(30, 50, 60, 0.95), rgba(10, 20, 25, 0.98));
+        border: 1.5px solid rgba(0, 255, 204, 0.75);
+        background: radial-gradient(circle at 50% 25%, rgba(0, 255, 204, 0.14), rgba(10, 18, 28, 0.96) 75%);
         display: flex;
         align-items: center;
         justify-content: center;
-        box-shadow: 0 0 12px rgba(0, 255, 204, 0.3);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6), 0 0 12px rgba(0, 255, 204, 0.2), inset 0 1px 1px rgba(255, 255, 255, 0.2), inset 0 0 12px rgba(0, 255, 204, 0.12);
+        position: relative;
+        overflow: hidden;
+        transition: transform 0.08s ease, box-shadow 0.08s ease, background 0.08s ease;
     }
 
     .ctrl-btn:active {
         transform: scale(0.95);
         background: var(--accent-color);
+        box-shadow: 0 0 25px var(--accent-color);
     }
 
     .btn-arrow {
-        width: 20px;
-        height: 20px;
+        width: 22px;
+        height: 22px;
+        filter: drop-shadow(0 0 6px rgba(0, 255, 204, 0.7));
     }
 
     .btn-arrow polygon {
@@ -468,35 +487,46 @@ h1 {
 
 #startBtn {
     margin-top: 10px;
-    background: transparent;
+    background: rgba(0, 255, 204, 0.1);
     color: var(--accent-color);
-    border: 2px solid var(--accent-color);
-    padding: 10px 25px;
-    font-weight: bold;
+    border: 1.5px solid var(--accent-color);
+    border-radius: 8px;
+    padding: 11px 32px;
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: 700;
     letter-spacing: 3px;
     cursor: pointer;
-    transition: 0.2s;
+    transition: all 0.2s ease;
+    box-shadow: 0 0 18px rgba(0, 255, 204, 0.25), inset 0 0 10px rgba(0, 255, 204, 0.15);
+    text-shadow: 0 0 8px var(--accent-glow);
 }
 
 #startBtn:hover {
     background: var(--accent-color);
-    color: #000;
+    color: #050510;
+    box-shadow: 0 0 30px var(--accent-color);
+    transform: translateY(-1px);
 }
 
 .overlay-reset-btn {
     margin-top: 8px;
-    background: transparent;
-    color: #ff6b6b;
-    border: 1px solid rgba(255, 107, 107, 0.7);
-    padding: 6px 12px;
-    font-size: 11px;
-    letter-spacing: 1px;
-    border-radius: 6px;
+    background: rgba(255, 91, 125, 0.06);
+    color: #ff5b7d;
+    border: 1px solid rgba(255, 91, 125, 0.45);
+    padding: 6px 16px;
+    font-family: inherit;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    border-radius: 8px;
     cursor: pointer;
+    transition: all 0.2s ease;
 }
 
 .overlay-reset-btn:hover {
-    background: rgba(255, 107, 107, 0.15);
+    background: rgba(255, 91, 125, 0.2);
+    box-shadow: 0 0 14px rgba(255, 91, 125, 0.35);
 }
 
 /* Game Over Leaderboard Styles */
@@ -609,12 +639,17 @@ h1 {
 .overlay {
     overflow-y: auto;
     padding: 20px 20px;
-    justify-content: flex-start !important;
+    justify-content: center;
+}
+
+.overlay.has-leaderboard {
+    justify-content: flex-start;
 }
 
 .overlay h1 {
     margin-top: 10px;
     font-size: 32px;
+    filter: drop-shadow(0 0 12px rgba(0, 255, 204, 0.4));
 }
 
 .overlay p {

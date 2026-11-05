@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Neon Snake 3D Pro</title>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=2.18.2">
+    <link rel="stylesheet" href="style.css?v=2.18.3">
 
     <!-- PWA Setup -->
     <link rel="manifest" href="manifest.json">
@@ -27,7 +27,7 @@
                 });
 
                 try {
-                    const reg = await navigator.serviceWorker.register('./sw.js?v=2.18.2');
+                    const reg = await navigator.serviceWorker.register('./sw.js?v=2.18.3');
                     await reg.update();
 
                     const activateUpdate = () => {
@@ -79,7 +79,12 @@
         <!-- Mobile Stats Bar (Top) -->
         <div class="mobile-stats-bar">
             <div class="m-stat"><span>S:</span><span id="m-score">0</span></div>
-            <div class="m-stat"><span>🍎:</span><span id="m-apples">0</span></div>
+            <div class="m-stat">
+                <svg class="m-crystal-icon" viewBox="0 0 16 16" aria-hidden="true">
+                    <polygon points="8,1 15,8 8,15 1,8" fill="#ff2a85" stroke="#ff99c2" stroke-width="1.2" />
+                </svg>
+                <span id="m-apples">0</span>
+            </div>
             <div class="m-stat"><span>B:</span><span id="m-best">0</span></div>
             <div class="m-stat m-delta-stat"><span>Δ:</span><span id="m-currentDelta" class="delta-neutral">0.00</span></div>
             <button id="pauseBtnMobile" class="m-pause-btn" title="Pause">⏸</button>
@@ -211,7 +216,7 @@
         </div>
     </div>
 
-    <script src="script.js?v=2.18.2"></script>
+    <script src="script.js?v=2.18.3"></script>
 </body>
 
 </html>

@@ -1,4 +1,4 @@
-const VERSION = "v2.18.2 POLISH & FIXES";
+const VERSION = "v2.18.3 DESIGN OVERHAUL";
 const STATE_START = 'start';
 const STATE_PLAYING = 'playing';
 const STATE_DEAD = 'dead';
@@ -153,6 +153,7 @@ function init() {
         renderBoardBuffer();
         initAmbientParticles();
         initMobileControls();
+        renderLeaderboardTable();
         console.log("System Ready - " + VERSION);
         requestAnimationFrame(renderLoop);
     } catch (e) {
@@ -524,6 +525,33 @@ function drawSnake(currentTime, dt) {
     const spd = dt / 16.67;
     const snakeColors = getThemeColors(snakeHue);
     const targetSnake = (gameState === STATE_DEAD) ? dyingSnake : snake;
+
+    // Draw glowing cybernetic spine connecting segments
+    if (gameState !== STATE_DEAD && targetSnake.length > 1) {
+        ctx.save();
+        ctx.beginPath();
+        for (let i = 0; i < targetSnake.length; i++) {
+            const s = targetSnake[i];
+            const ps = prevSnake[i] || s;
+            const px = (ps.x + (s.x - ps.x) * moveProgress) * TILE_SIZE + TILE_SIZE / 2;
+            const py = (ps.y + (s.y - ps.y) * moveProgress) * TILE_SIZE + TILE_SIZE / 2;
+            if (i === 0) ctx.moveTo(px, py);
+            else ctx.lineTo(px, py);
+        }
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        ctx.lineWidth = TILE_SIZE * 0.36;
+        ctx.strokeStyle = snakeColors.side;
+        ctx.shadowColor = snakeColors.glow;
+        ctx.shadowBlur = 12;
+        ctx.stroke();
+
+        ctx.lineWidth = TILE_SIZE * 0.14;
+        ctx.strokeStyle = `hsla(${snakeHue}, 100%, 75%, 0.7)`;
+        ctx.stroke();
+        ctx.restore();
+    }
+
     for (let i = targetSnake.length - 1; i >= 0; i--) {
         const s = targetSnake[i];
         let ix, iy, alpha = 1, angle = 0;
@@ -721,8 +749,18 @@ function renderBoardBuffer() {
             }
 
             if (scarState[x][y]) {
-                boardCtx.fillStyle = COLOR_SCAR_MARK;
-                boardCtx.beginPath(); boardCtx.arc(center, middle, 2.5, 0, Math.PI * 2); boardCtx.fill();
+                boardCtx.save();
+                boardCtx.strokeStyle = COLOR_SCAR_MARK;
+                boardCtx.lineWidth = 1.3;
+                const dSz = 3.5;
+                boardCtx.beginPath();
+                boardCtx.moveTo(center, middle - dSz);
+                boardCtx.lineTo(center + dSz, middle);
+                boardCtx.lineTo(center, middle + dSz);
+                boardCtx.lineTo(center - dSz, middle);
+                boardCtx.closePath();
+                boardCtx.stroke();
+                boardCtx.restore();
             }
         }
     }
@@ -742,9 +780,36 @@ function drawBoardBorder() {
 }
 
 function drawPauseOverlay() {
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.5)'; ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.font = 'bold 30px Orbitron'; ctx.fillStyle = '#00ffcc'; ctx.textAlign = 'center';
-    ctx.fillText('PAUSED', canvas.width / 2, canvas.height / 2);
+    ctx.save();
+    ctx.fillStyle = 'rgba(5, 5, 16, 0.65)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    const cx = canvas.width / 2;
+    const cy = canvas.height / 2;
+    const boxW = 280;
+    const boxH = 110;
+
+    ctx.fillStyle = 'rgba(15, 22, 38, 0.9)';
+    ctx.strokeStyle = '#00ffcc';
+    ctx.lineWidth = 2;
+    ctx.shadowColor = '#00ffcc';
+    ctx.shadowBlur = 25;
+    drawRoundedRect(cx - boxW / 2, cy - boxH / 2, boxW, boxH, 14);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.shadowBlur = 12;
+    ctx.font = 'bold 30px Orbitron';
+    ctx.fillStyle = '#00ffcc';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('SYSTEM PAUSED', cx, cy - 14);
+
+    ctx.shadowBlur = 0;
+    ctx.font = '12px Orbitron';
+    ctx.fillStyle = '#8899aa';
+    ctx.fillText('Press SPACE or ▶ to resume', cx, cy + 24);
+    ctx.restore();
 }
 
 function spawnFood() {
@@ -987,6 +1052,36 @@ function applyDeltaIndicator(el, delta) {
     el.textContent = '0.00';
 }
 
+function renderLeaderboardTable(highlightScore = null) {
+    if (!elements.leaderboardBody) return;
+    if (!scoreHistory || scoreHistory.length === 0) {
+        if (elements.leaderboardContainer) elements.leaderboardContainer.classList.add('hidden');
+        if (elements.startScreen) elements.startScreen.classList.remove('has-leaderboard');
+        return;
+    }
+
+    const topTen = [...scoreHistory]
+        .sort((a, b) => b.score - a.score)
+        .slice(0, 10);
+
+    elements.leaderboardBody.innerHTML = '';
+    topTen.forEach((entry, index) => {
+        const row = document.createElement('tr');
+        if (highlightScore !== null && entry.score === highlightScore && entry.timestamp >= Date.now() - 5000) {
+            row.classList.add('top-record');
+        }
+        row.innerHTML = `
+            <td>${index + 1}</td>
+            <td>${entry.score}</td>
+            <td>${entry.duration || '—'}</td>
+            <td>${entry.date}</td>
+        `;
+        elements.leaderboardBody.appendChild(row);
+    });
+    if (elements.leaderboardContainer) elements.leaderboardContainer.classList.remove('hidden');
+    if (elements.startScreen) elements.startScreen.classList.add('has-leaderboard');
+}
+
 function updateGameOverUI(currentScore, sessionDurationFormatted, averageAfter, averageDelta) {
     if (elements.lastScore) elements.lastScore.textContent = currentScore;
     if (elements.lastSessionTime) elements.lastSessionTime.textContent = sessionDurationFormatted;
@@ -994,28 +1089,7 @@ function updateGameOverUI(currentScore, sessionDurationFormatted, averageAfter, 
     applyDeltaIndicator(elements.avgDelta, averageDelta);
     if (elements.statsSummary) elements.statsSummary.classList.remove('hidden');
 
-    // Update Leaderboard
-    if (elements.leaderboardBody) {
-        const topTen = [...scoreHistory]
-            .sort((a, b) => b.score - a.score)
-            .slice(0, 10);
-
-        elements.leaderboardBody.innerHTML = '';
-        topTen.forEach((entry, index) => {
-            const row = document.createElement('tr');
-            if (entry.score === currentScore && entry.timestamp >= Date.now() - 5000) {
-                row.classList.add('top-record');
-            }
-            row.innerHTML = `
-                <td>${index + 1}</td>
-                <td>${entry.score}</td>
-                <td>${entry.duration || '—'}</td>
-                <td>${entry.date}</td>
-            `;
-            elements.leaderboardBody.appendChild(row);
-        });
-        if (elements.leaderboardContainer) elements.leaderboardContainer.classList.remove('hidden');
-    }
+    renderLeaderboardTable(currentScore);
 
     if (elements.startPrompt) elements.startPrompt.classList.add('hidden');
 }
@@ -1190,6 +1264,7 @@ function resetAllStats() {
         updateStatsUI(score);
         if (elements.statsSummary) elements.statsSummary.classList.add('hidden');
         if (elements.leaderboardContainer) elements.leaderboardContainer.classList.add('hidden');
+        if (elements.startScreen) elements.startScreen.classList.remove('has-leaderboard');
         if (elements.startPrompt) elements.startPrompt.classList.remove('hidden');
     }
 }
