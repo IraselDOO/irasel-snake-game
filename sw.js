@@ -1,9 +1,9 @@
-const CACHE_NAME = 'neon-snake-v2.17.3'; // Updated to match game version
+const CACHE_NAME = 'neon-snake-v2.18.1'; // Updated to match game version
 const ASSETS = [
     './',
     'index.html',
-    'style.css',
-    'script.js',
+    'style.css?v=2.18.1',
+    'script.js?v=2.18.1',
     'icon-192.png',
     'icon-512.png',
     'manifest.json'

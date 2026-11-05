@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Neon Snake 3D Pro</title>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=2.18.1">
 
     <!-- PWA Setup -->
     <link rel="manifest" href="manifest.json">
@@ -27,7 +27,7 @@
                 });
 
                 try {
-                    const reg = await navigator.serviceWorker.register('./sw.js?v=2.17.3');
+                    const reg = await navigator.serviceWorker.register('./sw.js?v=2.18.1');
                     await reg.update();
 
                     const activateUpdate = () => {
@@ -140,6 +140,10 @@
                             <span id="lastScore" class="value">0</span>
                         </div>
                         <div class="summary-item">
+                            <span class="label">Time</span>
+                            <span id="lastSessionTime" class="value">0s</span>
+                        </div>
+                        <div class="summary-item">
                             <span class="label">Average</span>
                             <span id="avgScore" class="value">0.00</span>
                         </div>
@@ -155,6 +159,7 @@
                                 <tr>
                                     <th>#</th>
                                     <th>SCORE</th>
+                                    <th>TIME</th>
                                     <th>DATE</th>
                                 </tr>
                             </thead>
@@ -205,7 +210,7 @@
         </div>
     </div>
 
-    <script src="script.js"></script>
+    <script src="script.js?v=2.18.1"></script>
 </body>
 
 </html>

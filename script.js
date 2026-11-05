@@ -1,4 +1,4 @@
-const VERSION = "v2.17.3 AVERAGE INSIGHTS";
+const VERSION = "v2.18.1 TIMER & MILESTONES";
 const STATE_START = 'start';
 const STATE_PLAYING = 'playing';
 const STATE_DEAD = 'dead';
@@ -41,6 +41,7 @@ const elements = {
     joystickBase: document.getElementById('joystickBase'),
     joystickStick: document.getElementById('joystickStick'),
     lastScore: document.getElementById('lastScore'),
+    lastSessionTime: document.getElementById('lastSessionTime'),
     avgScore: document.getElementById('avgScore'),
     avgDelta: document.getElementById('avgDelta'),
     statsSummary: document.getElementById('statsSummary'),
@@ -71,6 +72,9 @@ let highScore = localStorage.getItem('snakeHighScore') || 0;
 const STORAGE_KEY_HISTORY = 'snakeScoreHistory';
 let scoreHistory = JSON.parse(localStorage.getItem(STORAGE_KEY_HISTORY) || '[]');
 let startTime = 0;
+let sessionElapsedMs = 0;
+let lastMinuteReached = 0;
+let minuteBanner = null;
 let foodsEaten = 0;
 let isPaused = false;
 let logicAccumulator = 0;
@@ -115,6 +119,10 @@ class AudioSystem {
     }
     playGameOver() { this.osc(220, 'sawtooth', 0.5, 50); }
     playClick() { this.osc(1200, 'sine', 0.04, 800); } // Short futuristic click
+    playMinuteMilestone() {
+        this.osc(523.25, 'sine', 0.15, 659.25);
+        setTimeout(() => this.osc(659.25, 'triangle', 0.35, 1046.5), 120);
+    }
     osc(freq, type, duration, endFreq) {
         if (this.ctx.state === 'suspended') this.ctx.resume();
         const osc = this.ctx.createOscillator();
@@ -235,7 +243,8 @@ function startGame() {
         currentGoldenChance = 0.05;
         prevSnake = snake.map(s => ({ ...s }));
 
-        score = 0; foodsEaten = 0; startTime = performance.now(); gameSpeed = 110;
+        score = 0; foodsEaten = 0; startTime = performance.now(); sessionElapsedMs = 0; lastMinuteReached = 0; minuteBanner = null; gameSpeed = 110;
+        goldenFood = null;
         snakeHue = 160; foodHue = (snakeHue + 180) % 360;
         borderFlashTimer = 0;
         initGridState();
@@ -244,7 +253,7 @@ function startGame() {
         if (elements.startScreen) elements.startScreen.classList.add('hidden');
         gameState = STATE_PLAYING;
         isPaused = false;
-        spawnFood(); updateStatsUI(0);
+        spawnFood(); updateStatsUI(0); updateTimerUI();
         lastFoodTime = performance.now(); // Consistent high-res timer
         lastRenderTime = performance.now();
         lastLogicTick = lastRenderTime;
@@ -350,6 +359,13 @@ function renderLoop(currentTime) {
     if (isPaused) { drawPauseOverlay(); return; }
 
     if (gameState === STATE_PLAYING) {
+        sessionElapsedMs += dt;
+        updateTimerUI();
+        const currentMinute = Math.floor(sessionElapsedMs / 60000);
+        if (currentMinute > lastMinuteReached) {
+            lastMinuteReached = currentMinute;
+            triggerMinuteMilestone(currentMinute);
+        }
         logicAccumulator += dt;
         while (logicAccumulator >= gameSpeed) {
             gameLoop();
@@ -440,6 +456,7 @@ function renderLoop(currentTime) {
 
     renderParticles(dt);
     renderFloatingTexts(dt);
+    renderMinuteBanner(dt);
     ctx.restore();
     ctx.filter = 'none';
 }
@@ -739,6 +756,53 @@ function renderFloatingTexts(dt) {
     }
 }
 
+function formatDuration(ms) {
+    const totalSec = Math.floor(ms / 1000);
+    const mins = Math.floor(totalSec / 60);
+    const secs = totalSec % 60;
+    return mins > 0 ? `${mins}m ${secs.toString().padStart(2, '0')}s` : `${secs}s`;
+}
+
+function updateTimerUI() {
+    const formatted = formatDuration(sessionElapsedMs);
+    if (elements.duration) elements.duration.innerText = formatted;
+    if (elements.efficiency) {
+        elements.efficiency.innerText = foodsEaten > 0 ? (sessionElapsedMs / (foodsEaten * 1000)).toFixed(1) + 's' : '0s';
+    }
+}
+
+function triggerMinuteMilestone(mins) {
+    audio.playMinuteMilestone();
+    borderFlashTimer = 1.5;
+    borderFlashHue = 180;
+    shakeIntensity = 18;
+    minuteBanner = { text: `${mins} MIN`, life: 1.0, scale: 0.5 };
+}
+
+function renderMinuteBanner(dt) {
+    if (!minuteBanner) return;
+    const spd = dt / 16.67;
+    minuteBanner.life -= 0.012 * spd;
+    minuteBanner.scale += (1.2 - minuteBanner.scale) * 0.1 * spd;
+    if (minuteBanner.life <= 0) { minuteBanner = null; return; }
+
+    ctx.save();
+    ctx.translate(canvas.width / 2, canvas.height / 3);
+    ctx.scale(minuteBanner.scale, minuteBanner.scale);
+    ctx.globalAlpha = Math.min(1, minuteBanner.life * 1.5);
+    ctx.font = 'bold 48px Orbitron';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.shadowColor = '#00ffcc';
+    ctx.shadowBlur = 25;
+    ctx.fillStyle = '#00ffcc';
+    ctx.fillText(minuteBanner.text, 0, 0);
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = '#ffffff';
+    ctx.strokeText(minuteBanner.text, 0, 0);
+    ctx.restore();
+}
+
 function updateStatsUI(s) {
     if (elements.score) elements.score.innerText = s;
     if (elements.mScore) elements.mScore.innerText = s;
@@ -756,12 +820,7 @@ function updateStatsUI(s) {
     const currentDelta = getProjectedAverageDelta(s);
     applyDeltaIndicator(elements.mCurrentDelta, currentDelta);
 
-    if (elements.efficiency) {
-        elements.efficiency.innerText = foodsEaten > 0 ? ((performance.now() - startTime) / (foodsEaten * 1000)).toFixed(1) + 's' : '0s';
-    }
-    if (elements.duration && startTime > 0) {
-        elements.duration.innerText = Math.floor((performance.now() - startTime) / 1000) + 's';
-    }
+    updateTimerUI();
 }
 
 function gameOver() {
@@ -790,15 +849,15 @@ function gameOver() {
         if (h1) h1.textContent = "GAME OVER";
     }
 
-    const sessionDuration = Math.floor((performance.now() - startTime) / 1000);
-    if (p) p.textContent = `Score: ${score} | Apples: ${foodsEaten} | Time: ${sessionDuration}s`;
+    const sessionDurationFormatted = formatDuration(sessionElapsedMs);
+    if (p) p.textContent = `Score: ${score} | Apples: ${foodsEaten} | Time: ${sessionDurationFormatted}`;
     if (elements.startBtn) elements.startBtn.textContent = "REBOOT SYSTEM";
 
     // Score History Management
     const averageBefore = getAverageScorePrecise();
-    saveScore(score);
+    saveScore(score, sessionDurationFormatted);
     const averageAfter = getAverageScorePrecise();
-    updateGameOverUI(score, averageAfter, averageAfter - averageBefore);
+    updateGameOverUI(score, sessionDurationFormatted, averageAfter, averageAfter - averageBefore);
 
     setTimeout(() => {
         if (gameState === STATE_DEAD && elements.startScreen) {
@@ -807,9 +866,10 @@ function gameOver() {
     }, 1500); // Reduced delay for better feel
 }
 
-function saveScore(s) {
+function saveScore(s, durationStr) {
     const entry = {
         score: s,
+        duration: durationStr,
         date: new Date().toLocaleDateString(),
         timestamp: Date.now()
     };
@@ -852,8 +912,9 @@ function applyDeltaIndicator(el, delta) {
     el.textContent = '0.00';
 }
 
-function updateGameOverUI(currentScore, averageAfter, averageDelta) {
+function updateGameOverUI(currentScore, sessionDurationFormatted, averageAfter, averageDelta) {
     if (elements.lastScore) elements.lastScore.textContent = currentScore;
+    if (elements.lastSessionTime) elements.lastSessionTime.textContent = sessionDurationFormatted;
     if (elements.avgScore) elements.avgScore.textContent = averageAfter.toFixed(2);
     applyDeltaIndicator(elements.avgDelta, averageDelta);
     if (elements.statsSummary) elements.statsSummary.classList.remove('hidden');
@@ -873,6 +934,7 @@ function updateGameOverUI(currentScore, averageAfter, averageDelta) {
             row.innerHTML = `
                 <td>${index + 1}</td>
                 <td>${entry.score}</td>
+                <td>${entry.duration || '—'}</td>
                 <td>${entry.date}</td>
             `;
             elements.leaderboardBody.appendChild(row);
