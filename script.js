@@ -1,4 +1,4 @@
-const VERSION = "v2.18.1 TIMER & MILESTONES";
+const VERSION = "v2.18.2 POLISH & FIXES";
 const STATE_START = 'start';
 const STATE_PLAYING = 'playing';
 const STATE_DEAD = 'dead';
@@ -49,7 +49,8 @@ const elements = {
     leaderboardBody: document.getElementById('leaderboardBody'),
     startPrompt: document.getElementById('startPrompt'),
     resetBestBtn: document.getElementById('resetBestBtn'),
-    resetStatsBtnOverlay: document.getElementById('resetStatsBtnOverlay')
+    resetStatsBtnOverlay: document.getElementById('resetStatsBtnOverlay'),
+    pauseBtnMobile: document.getElementById('pauseBtnMobile')
 };
 
 // Constants
@@ -162,6 +163,8 @@ function init() {
 
 function updateGridDimensions() {
     const isMobile = window.innerWidth <= 950;
+    const prevW = GRID_W;
+    const prevH = GRID_H;
 
     if (isMobile) {
         GRID_W = 18;
@@ -182,6 +185,26 @@ function updateGridDimensions() {
     // Update buffer canvas and display height
     boardCanvas.width = canvas.width;
     boardCanvas.height = canvas.height;
+
+    // Ensure gridState/scarState arrays cover new dimensions on resize
+    if (gridState.length > 0 && (prevW !== GRID_W || prevH !== GRID_H)) {
+        for (let x = 0; x < GRID_W; x++) {
+            if (!gridState[x]) gridState[x] = [];
+            if (!scarState[x]) scarState[x] = [];
+            for (let y = 0; y < GRID_H; y++) {
+                if (gridState[x][y] === undefined) gridState[x][y] = 0;
+                if (scarState[x][y] === undefined) scarState[x][y] = false;
+            }
+        }
+        if (food && (food.x >= GRID_W || food.y >= GRID_H)) {
+            food.x = Math.min(food.x, GRID_W - 1);
+            food.y = Math.min(food.y, GRID_H - 1);
+        }
+        if (goldenFood && (goldenFood.x >= GRID_W || goldenFood.y >= GRID_H)) {
+            goldenFood.x = Math.min(goldenFood.x, GRID_W - 1);
+            goldenFood.y = Math.min(goldenFood.y, GRID_H - 1);
+        }
+    }
 
     // Sync version text
     if (elements.version) {
@@ -253,6 +276,7 @@ function startGame() {
         if (elements.startScreen) elements.startScreen.classList.add('hidden');
         gameState = STATE_PLAYING;
         isPaused = false;
+        if (elements.pauseBtnMobile) elements.pauseBtnMobile.textContent = '⏸';
         spawnFood(); updateStatsUI(0); updateTimerUI();
         lastFoodTime = performance.now(); // Consistent high-res timer
         lastRenderTime = performance.now();
@@ -278,7 +302,11 @@ function gameLoop() {
     const head = { x: snake[0].x + direction.x, y: snake[0].y + direction.y };
 
     if (head.x < 0 || head.x >= GRID_W || head.y < 0 || head.y >= GRID_H) { gameOver(); return; }
-    for (let p of snake) if (head.x === p.x && head.y === p.y) { gameOver(); return; }
+    const willEat = (head.x === food.x && head.y === food.y) || (goldenFood && head.x === goldenFood.x && head.y === goldenFood.y);
+    const bodyLimit = willEat ? snake.length : snake.length - 1;
+    for (let i = 0; i < bodyLimit; i++) {
+        if (head.x === snake[i].x && head.y === snake[i].y) { gameOver(); return; }
+    }
 
     gridState[head.x][head.y]++;
     prevSnake = snake.map(s => ({ ...s }));
@@ -290,15 +318,16 @@ function gameLoop() {
         // Calculate base reward with time decay: 10 - seconds since spawn, min 1.
         const secondsElapsed = Math.floor((performance.now() - lastFoodTime) / 1000);
         let reward = Math.max(1, 10 - secondsElapsed);
+        const wasDarkness = isDarknessActive;
 
         // Darkness Bonus (if active): apple points + snake length
-        if (isDarknessActive) {
+        if (wasDarkness) {
             reward += snake.length;
         }
 
         score += reward; foodsEaten++; spawnFood(); updateStatsUI(score);
 
-        if (isDarknessActive) {
+        if (wasDarkness) {
             isDarknessActive = false;
             darknessTimer = 0;
             spawnParticles(head.x, head.y, 60, 40); // Flash of light
@@ -313,13 +342,14 @@ function gameLoop() {
         lastFoodTime = performance.now();
 
         spawnParticles(head.x, head.y, foodHue);
-        spawnFloatingText(head.x, head.y, `+${reward}`, isDarknessActive ? "#00ffcc" : "#fff");
+        spawnFloatingText(head.x, head.y, `+${reward}`, wasDarkness ? "#00ffcc" : "#fff");
 
         snakeHue = (snakeHue + 5) % 360; foodHue = (snakeHue + 180) % 360;
         if (gameSpeed > 60) gameSpeed -= 1;
     } else if (goldenFood && head.x === goldenFood.x && head.y === goldenFood.y) {
         const reward = 5;
         score += reward; foodsEaten++; goldenFood = null; updateStatsUI(score);
+        head.hasFood = true; scarState[head.x][head.y] = true;
         isDarknessActive = true;
         darknessTimer = 10000;
         shakeIntensity = 25;
@@ -437,6 +467,18 @@ function renderLoop(currentTime) {
 
         // Always draw snake in darkness so user knows where they are
         drawSnake(currentTime, dt);
+
+        // Draw Darkness remaining timer ring around snake head
+        const darkProgress = Math.max(0, darknessTimer / 10000);
+        ctx.save();
+        ctx.strokeStyle = darkProgress < 0.25 ? '#ff5b7d' : '#ffd700';
+        ctx.lineWidth = 3;
+        ctx.shadowColor = ctx.strokeStyle;
+        ctx.shadowBlur = 10;
+        ctx.beginPath();
+        ctx.arc(headPos.x, headPos.y, TILE_SIZE * 0.9, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * darkProgress);
+        ctx.stroke();
+        ctx.restore();
     } else {
         // REGULAR DRAWING
         ctx.drawImage(boardCanvas, 0, 0);
@@ -448,7 +490,24 @@ function renderLoop(currentTime) {
 
             if (gameState === STATE_PLAYING) {
                 drawCrystal3D(food.x, food.y, foodColors, pulse);
-                if (goldenFood) drawDiamond3D(goldenFood.x, goldenFood.y, { top: '#ffd700', side: '#b8860b', glow: '#fff700' }, true, pulse * 1.2, true);
+                if (goldenFood) {
+                    const isExpiring = goldenFoodTimer < 1500;
+                    const blinkVisible = !isExpiring || Math.sin(Date.now() * 0.03) > -0.2;
+                    if (blinkVisible) {
+                        drawDiamond3D(goldenFood.x, goldenFood.y, { top: '#ffd700', side: '#b8860b', glow: '#fff700' }, true, pulse * 1.2, true);
+                    }
+                    // Countdown ring around golden apple
+                    const gfProgress = Math.max(0, goldenFoodTimer / 5000);
+                    const gcx = goldenFood.x * TILE_SIZE + TILE_SIZE / 2;
+                    const gcy = goldenFood.y * TILE_SIZE + TILE_SIZE / 2;
+                    ctx.save();
+                    ctx.strokeStyle = isExpiring ? '#ff5b7d' : '#ffd700';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.arc(gcx, gcy, TILE_SIZE * 0.65, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * gfProgress);
+                    ctx.stroke();
+                    ctx.restore();
+                }
             }
             drawSnake(currentTime, dt);
         }
@@ -462,6 +521,7 @@ function renderLoop(currentTime) {
 }
 
 function drawSnake(currentTime, dt) {
+    const spd = dt / 16.67;
     const snakeColors = getThemeColors(snakeHue);
     const targetSnake = (gameState === STATE_DEAD) ? dyingSnake : snake;
     for (let i = targetSnake.length - 1; i >= 0; i--) {
@@ -470,9 +530,9 @@ function drawSnake(currentTime, dt) {
 
         if (gameState === STATE_DEAD) {
             ix = s.x; iy = s.y; alpha = Math.max(0, s.life);
-            s.x += s.vx; s.y += s.vy;
-            s.vy += 0.05; // Heavier gravity (was 0.02)
-            s.life -= 0.015; // Fade slightly faster
+            s.x += s.vx * spd; s.y += s.vy * spd;
+            s.vy += 0.05 * spd; // Heavier gravity (was 0.02)
+            s.life -= 0.015 * spd; // Fade slightly faster
         } else {
             const ps = prevSnake[i] || s;
             ix = ps.x + (s.x - ps.x) * moveProgress;
@@ -688,10 +748,25 @@ function drawPauseOverlay() {
 }
 
 function spawnFood() {
-    let v = false; while (!v) { food = { x: Math.floor(Math.random() * GRID_W), y: Math.floor(Math.random() * GRID_H) }; v = true; for (let p of snake) if (p.x === food.x && p.y === food.y) v = false; }
+    let v = false;
+    while (!v) {
+        food = { x: Math.floor(Math.random() * GRID_W), y: Math.floor(Math.random() * GRID_H) };
+        v = true;
+        for (let p of snake) if (p.x === food.x && p.y === food.y) { v = false; break; }
+        if (goldenFood && food.x === goldenFood.x && food.y === goldenFood.y) v = false;
+    }
 
     if (Math.random() < currentGoldenChance) {
-        goldenFood = { x: Math.floor(Math.random() * GRID_W), y: Math.floor(Math.random() * GRID_H) };
+        let gv = false;
+        let attempts = 0;
+        while (!gv && attempts < 100) {
+            attempts++;
+            goldenFood = { x: Math.floor(Math.random() * GRID_W), y: Math.floor(Math.random() * GRID_H) };
+            gv = !(goldenFood.x === food.x && goldenFood.y === food.y);
+            if (gv) {
+                for (let p of snake) if (p.x === goldenFood.x && p.y === goldenFood.y) { gv = false; break; }
+            }
+        }
         goldenFoodTimer = 5000; // 5 seconds lifespan
         currentGoldenChance = 0.05; // Reset to 5%
     } else {
@@ -701,10 +776,10 @@ function spawnFood() {
 
 function getThemeColors(h) { return { top: `hsl(${h}, 100%, 50%)`, side: `hsl(${h}, 100%, 30%)`, glow: `hsl(${h}, 100%, 50%)` }; }
 
-function spawnParticles(gx, gy, h, count = 15) {
+function spawnParticles(gx, gy, h, count = 15, speedMult = 1) {
     const cx = gx * TILE_SIZE + TILE_SIZE / 2; const cy = gy * TILE_SIZE + TILE_SIZE / 2;
     for (let i = 0; i < count; i++) {
-        const a = Math.random() * Math.PI * 2; const s = 1 + Math.random() * 4;
+        const a = Math.random() * Math.PI * 2; const s = (1 + Math.random() * 4) * speedMult;
         particles.push({ x: cx, y: cy, vx: Math.cos(a) * s, vy: Math.sin(a) * s, life: 1, hue: h, sz: 2 + Math.random() * 4 });
     }
 }
@@ -1076,11 +1151,35 @@ function handleInput(dirStr) {
     if (inputQueue.length > 5) inputQueue.shift();
 }
 
+function togglePause() {
+    if (gameState !== STATE_PLAYING) return;
+    isPaused = !isPaused;
+    if (elements.pauseBtnMobile) {
+        elements.pauseBtnMobile.textContent = isPaused ? '▶' : '⏸';
+    }
+}
+
 document.addEventListener('keydown', e => {
-    if (e.code === 'Escape' || e.code === 'KeyP') { if (gameState === STATE_PLAYING) isPaused = !isPaused; return; }
-    if (e.code === 'Space') { if (gameState !== STATE_PLAYING) startGame(); else isPaused = !isPaused; e.preventDefault(); return; }
-    handleInput(e.code.replace('Arrow', ''));
+    if (e.code === 'Escape' || e.code === 'KeyP') { togglePause(); return; }
+    if (e.code === 'Space') { if (gameState !== STATE_PLAYING) startGame(); else togglePause(); e.preventDefault(); return; }
+    const keyMap = {
+        ArrowUp: 'Up', KeyW: 'Up',
+        ArrowDown: 'Down', KeyS: 'Down',
+        ArrowLeft: 'Left', KeyA: 'Left',
+        ArrowRight: 'Right', KeyD: 'Right'
+    };
+    if (keyMap[e.code]) {
+        handleInput(keyMap[e.code]);
+        e.preventDefault();
+    }
 });
+
+if (elements.pauseBtnMobile) {
+    elements.pauseBtnMobile.addEventListener('click', () => {
+        togglePause();
+        audio.playClick();
+    });
+}
 
 function resetAllStats() {
     if (confirm("Reset best score?")) {
